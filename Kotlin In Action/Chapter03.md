@@ -234,7 +234,7 @@ view.click() // Button clicked
 ```
 > 확장 함수는 클래스의 일부가 아니다. 확장 함수는 클래스 밖에 선언된다.
 
-> 이름과 파라미터가 완전히 같은 확장 함수를 기반 클래스와 하위 클래스에 대해 정의해도 실제로는 확장 함수를 호출할 때 수신 객체로 지정한 변수의 정적 타입에 의해 어떤 확장 함수가 호출될지 결정되지, 그 변수에 저장된 객체의 동적인 타입에 의해 확장 함수가 결정되지 않는다.
+- 이름과 파라미터가 완전히 같은 확장 함수를 기반 클래스와 하위 클래스에 대해 정의해도 실제로는 확장 함수를 호출할 때 수신 객체로 지정한 변수의 정적 타입에 의해 어떤 확장 함수가 호출될지 결정되지, 그 변수에 저장된 객체의 동적인 타입에 의해 확장 함수가 결정되지 않는다.
 
 ```kotlin
 // 확장 함수는 오버라이드할 수 없다.
@@ -250,7 +250,7 @@ view.showOff() // I'm a view!
 ### 확장 프로퍼티
 - 확장 프로퍼티를 사용하면 기존 클래스 객체에 대한 프로퍼티 형식의 구문으로 사용할 수 있는 API를 추가할 수 있다.
 - 프로퍼티라는 이름으로 불리기는 하지만 상태를 저장할 적적한 방법이 없기 때문에(기존 클래스의 인스턴스 객체에 필드를 추가할 방법은 없다) 실제로 확장 프로퍼티는 아무 상태도 가질 수 없다.
-- 하지만 프로퍼티 묹법으로 더 짧게 코드를 작성할 수 있어서 편한 경우가 있다.
+- 하지만 프로퍼티 문법으로 더 짧게 코드를 작성할 수 있어서 편한 경우가 있다.
 ```kotlin
 // 확장 프로퍼티 선언하기
 val String.lastChar: Char
@@ -271,3 +271,249 @@ val sb = StringBuilder("Kotlin?")
 sb.lastChar = '!'
 println(sb) // Kotlin!
 ```
+
+## 컬렉션 처리: 가변 길이 인자, 중위 함수 호출, 라이브러리 지원
+> varage 키워드를 사용하면 호출 시 인자 개수가 달라질 수 있는 함수를 정의할 수 있다.
+>
+> 중위(infix) 함수 호출 구문을 사용하면 인자가 하나뿐인 메소드를 간편하게 호출할 수 있다.
+>
+> 구조 분해 선언을 사용하면 복합적인 값을 분해해서 여러 변수에 나눠 담을 수 있다.
+
+### 자바 컬렉션 API 확장
+```kotlin
+val strings: List<String> = listOf("first", "second", "fourteenth")
+
+strings.last() // fourteenth
+
+val numbers: Collection<Int> = setOf(1, 14, 2)
+numbers.max() // 14
+```
+#### 자바 라이브러리 클래스의 인스턴스인 컬렉션에 대해 코틀린에서는 어떻게 새로운 기능을 추가할 수 있었을까?
+> last와 max는 모두 확장 함수였던 것이다!
+```kotlin
+// last는 List 클래스의 확장 함수다.
+fun <T> List<T>.last(): T { /* 마지막 원소를 반환함 */ }
+
+fun Collection<Int>.max(): Int { /* 컬렉션의 최댓값을 찾음 */ }
+```
+
+### 가변 인자 함수: 인자의 개수가 달라질 수 있는 함수 정의
+```kotlin
+var list = listOf(2, 3, 5, 7, 11)
+
+fun listOf<T>(vararg values: T): List<T> { ... }
+```
+- `가변 길이 인자(vararg)`는 메소드를 호출할 때 원하는 개수만큼 값을 인자로 넘기면 자바 컴파일러가 배열에 그 값들을 넣어주는 기능이다.
+- 코틀린에서는 이미 배열에 들어있는 원소를 가변 길이 인자로 넘길 때 배열을 명시적으로 풀어서 배열의 각 원소가 인자로 전달되게 해야 한다.
+- 기술적으로는 `스프레드 연산자`가 그런 작업을 해준다. 하지만 실제로는 전달하려는 배열 앞에 *를 붙이기만 하면 된다.
+```kotlin
+fun main(args: Array<String>) {
+    val list = listOf("args: ", *args)
+    println(list)
+}
+```
+
+### 값의 쌍 다루기: 중위 호출과 구조 분해 선언
+```kotlin
+val map = mapOf(1 to "one", 7 to "seven", 53 to "fifty-three")
+```
+- 여기서 to라는 단어는 코틀린 키워드가 아니다. 이 코드는 `중위 호출(infix call)`이라는 특별한 방식으로 to라는 일반 메소드를 호출한 것이다.
+- 중위 호출 시에는 수신 객체와 유일한 메소드 인자 사이에 메소드 이름을 넣는다.
+```kotlin
+1.to("one") //  "to" 메소드를 일반적인 방식으로 호출함
+1 to "one" // "to" 메소드를 중위 호출 방식으로 호출함
+```
+- 인자가 하나뿐인 일반 메소드나 인자가 하나뿐인 확장 함수에 중위 호출을 사용할 수 있다.
+- 함수(메소드)를 중위 호출에 사용하게 허용하고 싶으면 infix 변경자를 함수(메소드) 선언 앞에 추가해야 한다.
+```kotlin
+infix fun Any.to(other: Any) = Pair(this, other) 
+```
+- 이 to 함수는 Pair의 인스턴스를 반환한다. `Pair`는 코틀린 표준 라이브러리 클래스로 그 이름대로 두 원소로 이뤄진 순서쌍을 표현한다. 실제로 to는 제네릭 함수다.
+```kotlin
+val (number, name) = 1 to "one" 
+```
+- 이런 기능을 `구조 분해 선언`이라고 부른다. Pair 인스턴스 외 다른 객체에도 구조 분해를 적용할 수 있다.
+- 루프에서도 구조 분해 선언을 활용할 수 있다.
+```kotlin
+for ((index, element) in collection.withIndex()) {
+    println("$index: $element")
+}
+```
+- to 함수는 확장 함수다. to를 사용하면 타입과 관계없이 임의의 순서쌍을 만들 수 있다. 이는 to의 수신 객체가 제네릭하다는 뜻이다.
+```kotlin
+// mapOf 함수의 선언
+fun <K, V> mapOf(vararg values: Pair<K, V>): Map<K, V> 
+```
+
+## 문자열과 정규식 다루기
+- 코틀린 문자열은 자바 문자열과 같다. 특별한 변환도 필요 없고 자바 문자열을 감싸는 별도의 래퍼(wrapper)도 생기지 않는다.
+### 문자열 나누기
+- 자바 split 메소드의 구분 문자열은 `정규식`이다.
+  - 일반적으로 점(.)을 사용해 문자열을 분리하면 마침표(.)는 모든 문자를 나타내는 정규식으로 해석되기 때문에 빈 배열을 반환한다.
+
+
+- 코틀린에서는 자바의 split 대신에 여러 가지 다른 조합의 파라미터를 받는 split 확장 함수를 제공함으로써 혼동을 야기하는 메소드를 감춘다.
+- 정규식을 파라미터로 받는 함수는 String이 아닌 Regex 타입의 값을 받는다. 따라서 코틀린에서는 split 함수에 전달하는 값의 타입에 따라 정규식이나 일반 텍스트 중 어느 것으로 문자열을 분리하는 지 쉽게 알 수 있다.
+```kotlin
+// 마침표나 대시(-)로 문자열을 분리하는 예
+println("12.345-6.A".split("\\.|-".toRegex())) // [12, 345, 6, A] 
+```
+- 코틀린에서는 toRegex 확장 함수를 사용해 문자열을 정규식으로 변환할 수 있다.
+- split 확장 함수를 오버로딩한 버전 중에는 구분 문자열을 하나 이상 인자로 받는 함수가 있다.
+```kotlin
+println("12.345-6.A".split(".", "-")) // [12, 345, 6, A]
+```
+- 이렇게 여러 문자를 받을 수 있는 코틀린 확장 함수는 자바에 있는 단 하나의 문자만 받을 수 있는 메소드를 대신한다.
+
+### 정규식과 3중 따옴표로 묶은 문자열
+```kotlin
+// String 확장 함수를 사용해 경로 파싱하기
+fun parsePath(path: String) {
+    val directory = path.substringBeforeLast("/")
+    val fullName = path.substringAfterLast("/")
+    val fileName = fullName.substringBeforeLast(".")
+    val extension = fullName.substringAfterLast(".")
+    
+    println("Dir: $directory, name: $fileName, ext: $extension")
+}
+
+parsePath("/Users/yole/kotlin-book/chapter.adoc")
+// 디렉터리 경로 = Dir, 파일 이름 = name, 파일 확장자 = ext
+// 결과: Dir: /Users/yole/kotlin-book, name: chapter, ext: adoc
+```
+- 코틀린에서는 정규식을 사용하지 않고도 문자열을 쉽게 파싱할 수 있다. 정규식은 강력하기는 하지만 나중에 알아보기 힘든 경우가 많다.
+- 정규식이 필요할 때는 코틀린 라이브러리를 사용하면 더 편하다.
+```kotlin
+// 경로 파싱에 정규식 사용하기
+fun parsePath(path: String) {
+    val regex = """(.+)/(.+)\.(.+)""".toRegex()
+    val matchResult = regex.matchEntire(path)
+    
+    if (matchResult != null) {
+        // destructured 프로퍼티 : 그룹별로 분해한 매치 결과
+        val (directory, filename, extension) = matchResult.destructured
+        println("Dir: $directory, name: $filename, ext: $extension")
+    }
+}
+```
+- 이 예제에서는 3중 따옴표 문자열을 사용해 정규식을 썻다. 3중 따옴표 문자열에서는 역슬래시(\\)를 포함한 어떤 문자도 이스케이프할 필요가 없다.
+
+### 여러 줄 3중 따옴표 문자열
+- 3중 따옴표를 쓰면 줄 바꿈이 들어있는 프로그램 텍스트를 쉽게 문자열로 만들 수 있다.
+```kotlin
+val kotlinLogo = """|  //
+                   .|  //
+                   .|/ \"""
+
+// trimMargin : 해당 문자열과 그 직전의 공백을 제거
+println(kotlinLogo.trimMargin("."))
+
+//// 결과
+// |  //
+// |  //
+// |/ \
+```
+- 3중 따옴표 문자열 안에 문자열 템플릿을 사용할 수도 있다. 그러나 3중 따옴표 문자열 안에서는 이스케이프를 사용할 수 없다.
+- 따라서 $ 를 넣어야 한다면 문자열 템플릿 안에 $ 문자를 넣어야 한다.
+```kotlin
+val price = """${'$'}99.9"""
+```
+
+## 코드 다듬기: 로컬 함수와 확장
+> 반복하지 말라(DRY, Don't Repeat Yourself)
+
+- 자바 코드를 작성할 때는 DRY 원칙을 피하기는 쉽지 않다. 많은 경우 메소드 추출 리팩토링을 적용해서 긴 메소드를 부분부분 나눠서 각 부분을 재활용할 수 있다. 하지만, 그렇게 코드를 리팩토링하면 클래스 안에 작은 메소드가 많아지고 각 메소드 사이의 관계를 파악하기 힘들어서 코드를 이해하기 더 어려워질 수도 있다.
+- 리팩토링을 진행해서 추출한 메소드를 별도의 내부 클래스(inner class) 안에 넣으면 코드를 깔끔하게 조직할 수는 있지만, 그에 따른 불필요한 준비 코드가 늘어난다.
+
+
+- 코틀린에서는 함수에서 추출한 함수를 원 함수 내부에 중첩시킬 수도 있다. 그렇게 하면 문법적인 부가 비용을 들이지 않고도 깔끔하게 코드를 조직할 수 잇다.
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    if (user.name.isEmpty()) {
+        throw IllegalArgumentException(
+            "Can't save user ${user.id}: empty Name")
+    }
+  
+    if (user.address.isEmpty()) {
+        throw IllegalArgumentException(
+            "Can't save user ${user.id}: empty Address")
+    }
+  
+    // user를 데이터베이스에 저장한다.
+}
+
+saveUser(User(1, "", "")) 
+// 결과: java.lang.IllegalArgumentException: Can't save user 1: empty Name
+```
+- 클래스가 사용자의 필드를 검증할 때 필요한 여러 경우를 하나씩 처리하는 메소드로 넘쳐나기를 바라지는 않을 것이다. 이런 경우 검증 코드를 로컬 함수로 분리하면 중복을 없애는 동시에 코드 구조를 깔끔하게 유지할 수 있다.
+```kotlin
+// 로컬 함수를 사용해 코드 중복 줄이기
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    fun validate(user: User, value: String, fieldName: String) {
+        if (value.isEmpty()) {
+            throw IllegalArgumentException(
+                "Can't save user ${user.id}: empty $fieldName")
+        }
+    }
+  
+    // 로컬 함수를 호출해서 각 필드를 검증한다.
+    validate(user, user.name, "Name")
+    validate(user, user.address, "Address")
+  
+    // user를 데이터베이스에 저장한다.
+}
+```
+- 검증 로직 중복은 사라졌고, 필요하면 User의 다른 필드에 대한 검증도 쉽게 추가할 수 있다. 하지만 User 객체를 로컬 함수에게 하나하나 전달해야 한다는 점은 아쉽다.
+- 하지만 로컬 함수는 자신이 속한 바깥 함수의 모든 파라미터와 변수를 사용할 수 있다.
+```kotlin
+// 로컬 함수에서 바깥 함수의 파라미터 접근하기
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    // 이제 saveUser 함수의 user 파라미터를 중복 사용하지 않는다.
+    fun validate(value: String, fieldName: String) {
+        if (value.isEmpty()) {
+          throw IllegalArgumentException(
+            // 바깥 함수의 하라미터에 직접 접근할 수 있다.
+            "Can't save user ${user.id}: empty $fieldName") 
+        }
+    }
+  
+    validate(user.name, "Name")
+    validate(user.address, "Address")
+  
+    // user를 데이터베이스에 저장한다.
+}
+```
+- 검증 로직을 User 클래스를 확장한 함수로 만들어 더 개선할 수 있다.
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun User.validateBeforeSave() {
+    fun validate(value: String, fieldName: String) {
+        if (value.isEmpty()) {
+          throw IllegalArgumentException(
+            // User의 프로퍼티를 직접 사용할 수 있다.
+            "Can't save user $id: empty $fieldName")
+        }
+    }
+  
+    validate(name, "Name")
+    validate(address, "Address")
+}
+
+fun saveUser(user: User) {
+    user.validateBeforeSave() // 확장 함수를 호출한다.
+  
+    // user를 데이터베이스 저장한다.
+}
+```
+> 이 경우 검증 로직은 User를 사용하는 다른 곳에서는 쓰이지 않는 기능이기 때문에 User에 포함시키고 싶지는 않다. User를 간결하게 유지하면 생각해야 할 내용이 줄어들어서 더 쉽게 코드를 파악할 수 있다.
+
+> 반면 한 객체만을 다루면서 객체의 비공개 데이터를 다룰 필요 없는 함수는 이와 같이 확장 함수로 만들면 `객체.멤버`처럼 수신 객체를 지정하지 않고도 공개된 멤버 프로퍼티나 메소드에 접근할 수 있다.
+
+- 확장 함수를 로컬 함수로 정의할 수도 있다. 즉 User.validateBeforeSave를 saveUser 내부에 로컬 함수로 넣을 수 있다. 하지만 중첩된 함수의 깊이가 깊어지면 코드를 읽기가 상당히 어려워진다. 따라서 일반적으로는 한 단계만 함수를 중첩시키라고 권장한다.
