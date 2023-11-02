@@ -15,11 +15,11 @@
 
 ```kotlin
 interface Clickable {
-    fun click()
+  fun click()
 }
 
 class Button : Clickable {
-    override fun click() = println("I was clicked")
+  override fun click() = println("I was clicked")
 }
 
 Button().click() // I was clicked
@@ -35,16 +35,16 @@ Button().click() // I was clicked
 ```kotlin
 // 인터페이스 안에 본문이 있는 메소드 정의하기
 interface Clickable {
-    fun click() // 일반 메소드 선언
-    fun showOff() = println("I'm clickable") // 디폴트 구현이 있는 메소드
+  fun click() // 일반 메소드 선언
+  fun showOff() = println("I'm clickable") // 디폴트 구현이 있는 메소드
 }
 
 // 동일한 메소드를 구현하는 다른 인터페이스 정의하기
 interface Focusable {
-    fun setFocus(b: Boolean) = 
-        println("I ${if (b) "got" else "lost"} focus.")
-  
-    fun showOff() = println("I'm focusable")
+  fun setFocus(b: Boolean) =
+    println("I ${if (b) "got" else "lost"} focus.")
+
+  fun showOff() = println("I'm focusable")
 }
 ```
 - 한 클래스에서 이 두 인터페이스(Clickable, Focusable)를 함께 구현하면 showOff 메소드가 중복되어 컴파일러 오류가 발생한다.
@@ -52,23 +52,23 @@ interface Focusable {
 ```kotlin
 // 상속한 인터페이스의 메소드 구현 호출하기
 class Button : Clickable, Focusable {
-    override fun click() = println("I was clicked")
-    
-    // 이름과 시그니처가 같은 멤버 메소드에 대해 둘 이상의 디폴트 구현이 있는 경우
-    // 인터페이스를 구현하는 하위 클래스에서 명시적으로 새로운 구현을 제공해야 한다.
-    override fun showOff() {
-        // 상위 타입의 이름을 꺾쇠 괄호(<>) 사이에 넣어서 "super"를 지정하면
-        // 어떤 상위 타입의 멤버 메소드를 호출할지 지정할 수 있다.
-        super<Clickable>.showOff()
-        super<Focusable>.showOff()
-    }
+  override fun click() = println("I was clicked")
+
+  // 이름과 시그니처가 같은 멤버 메소드에 대해 둘 이상의 디폴트 구현이 있는 경우
+  // 인터페이스를 구현하는 하위 클래스에서 명시적으로 새로운 구현을 제공해야 한다.
+  override fun showOff() {
+    // 상위 타입의 이름을 꺾쇠 괄호(<>) 사이에 넣어서 "super"를 지정하면
+    // 어떤 상위 타입의 멤버 메소드를 호출할지 지정할 수 있다.
+    super<Clickable>.showOff()
+    super<Focusable>.showOff()
+  }
 }
 
 fun main(args: Array<String>) {
-    val button = Button()
-    button.showOff()
-    button.setFocus(true)
-    button.click()
+  val button = Button()
+  button.showOff()
+  button.setFocus(true)
+  button.click()
 }
 
 //// 결과
@@ -84,7 +84,7 @@ override fun showOff() = super<Clickable>.showOff()
 
 ### open, final, abstract 변경자: 기본적으로 final
 - 자바에서 final로 명시적으로 상속을 금지하지 않는 모든 클래스를 다른 클래스가 상속할 수 있다.
-- 취약한 기반 클래스 문제 
+- 취약한 기반 클래스 문제
   - WHEN) 하위 클래스가 기반 클래스에 대해 가졌던 가정이 기반 클래스를 변경함으로써 깨져버린 경우 발생
   - WHY) 어떤 클래스가 자신을 상속하는 방법에 대해 정확한 규칙(어떤 메소드를 어떻게 오버라이드해야 하는지 등)을 제공하지 않는다면 그 클래스의 클라이언트는 기반 클래스를 변경하는 경우 하위 클래스의 동작이 예기치 않게 바뀔수도 있다.
 > 상속을 위한 설계와 문서를 갖추거나, 그럴 수 없다면 상속을 금지하라 (Feat. Effective Java)
@@ -97,15 +97,15 @@ override fun showOff() = super<Clickable>.showOff()
 // 열린 메소드를 포함하는 열린 클래스 정의하기
 // 이 클래스는 열려있다. 다른 클래스가 이 클래스를 상속할 수 있다.
 open class RichButton : Clickable {
-    // 이 함수는 final이다. 하위 클래스가 이 메소드를 오버라이드할 수 없다.
-    fun disable() {} 
-  
-    // 이 함수는 열려있다. 하위 클래스에서 이 메소드를 오버라이드해도 된다.
-    open fun animate() {}
-  
-    // 이 함수는 (상위 클래스에서 선언된) 열려있는 메소드를 오버라이드한다.
-    // 오버라이드한 메소드는 기본적으로 열려있다.
-    override fun click() {}
+  // 이 함수는 final이다. 하위 클래스가 이 메소드를 오버라이드할 수 없다.
+  fun disable() {}
+
+  // 이 함수는 열려있다. 하위 클래스에서 이 메소드를 오버라이드해도 된다.
+  open fun animate() {}
+
+  // 이 함수는 (상위 클래스에서 선언된) 열려있는 메소드를 오버라이드한다.
+  // 오버라이드한 메소드는 기본적으로 열려있다.
+  override fun click() {}
 } 
 ```
 - 기반 클래스나 인터페이스의 멤버를 오버라이드하는 경우 그 메소드는 기본적으로 열려있다.
@@ -113,13 +113,13 @@ open class RichButton : Clickable {
 ```kotlin
 // 오버라이드 금지하기
 open class RichButton : Clickable {
-    // 여기 있는 "final"은 쓸데 없이 붙은 중복이 아니다.
-    // "final"이 없는 "override" 메소드나 프로퍼티는 기본적으로 열려있다.
-    final override fun click() {}
+  // 여기 있는 "final"은 쓸데 없이 붙은 중복이 아니다.
+  // "final"이 없는 "override" 메소드나 프로퍼티는 기본적으로 열려있다.
+  final override fun click() {}
 }
 ```
 > **열린 클래스와 스마트 캐스트**
-> 
+>
 > 클래스의 기본적인 상속 가능 상태를 final로 함으로써 얻을 수 있는 큰 이익은 다양한 경우에 스마트 캐스트가 가능하다는 점이다. 스마트 캐스트는 타입 검사 뒤에 변경될 수 없는 변수에만 적용 가능하다. 클래스의 프로퍼티의 경우 이는 val이면서 커스텀 접근자가 없는 경우에만 스마트 캐스를 쓸 수 있다는 의미다. 이 요구사항은 또한 프로퍼티가 final이어야만 한다는 뜻이기도 하다. 프로퍼티가 final이 아니라면 그 프로퍼티를 다른 클래스가 상속하면서 커스텀 접근자를 정의함으로써 스마트 캐스트의 요구 사항을 깰 수 있다. 프로퍼티는 기본적으로 final이기 때문에 따로 고민할 필요 없이 대부분의 프로퍼티를 스마트 캐스트에 활용할 수 있다. 이는 코드를 더 이해하기 쉽게 만든다.
 
 - 자바처럼 코틀린에서도 클래스를 abstract로 선언할 수 있다. abstract로 선언한 추상 클래스는 인스턴스화 할 수 없다.
@@ -128,12 +128,12 @@ open class RichButton : Clickable {
 ```kotlin
 // 이 클래스는 추상클래스다. 이 클래스의 인스턴스를 만들 수 없다.
 abstract class Animated {
-    // 이 함수는 추상함수다. 이 함수에는 구현이 없다. 하위 클래스에서는 이 함수를 반드시 오버라이드해야 한다.
-    abstract fun animate()
-    
-    // 추상 클래스에 속했더라도 비추상 함수는 기본적으로 파이널이지만 원한다면 open으로 오버라이드를 허용할 수 있다.
-    open fun stopAnimating() {}
-    fun animateTwice() {}
+  // 이 함수는 추상함수다. 이 함수에는 구현이 없다. 하위 클래스에서는 이 함수를 반드시 오버라이드해야 한다.
+  abstract fun animate()
+
+  // 추상 클래스에 속했더라도 비추상 함수는 기본적으로 파이널이지만 원한다면 open으로 오버라이드를 허용할 수 있다.
+  open fun stopAnimating() {}
+  fun animateTwice() {}
 }
 ```
 - 인터페이스 멤버의 경우 final, open, abstract를 사용하지 않는다.
@@ -208,20 +208,20 @@ abstract class Animated {
 
 ```kotlin
 internal open class TalkativeButton : Focusable {
-    private fun yell() = println("Hey!")
-    protected fun whisper() = println("Let's talk")
+  private fun yell() = println("Hey!")
+  protected fun whisper() = println("Let's talk")
 }
 
 // 오류: "public" 멤버가 자신의 "internal" 수신 타입인 "TalkativeButton"을 노출함
 fun TalkativeButton.giveSpeech() {
-    // 오류: "yell"에 접근할 수 없음: "yell"은 "TalkativeButton"의 "private" 멤버임
-    yell()
-    // 오류: "whisper"에 접근할 수 없음: "whisper"는 "TalkativeButton"의 "protected" 멤버임
-    whisper()
+  // 오류: "yell"에 접근할 수 없음: "yell"은 "TalkativeButton"의 "private" 멤버임
+  yell()
+  // 오류: "whisper"에 접근할 수 없음: "whisper"는 "TalkativeButton"의 "protected" 멤버임
+  whisper()
 }
 ```
 > 어떤 클래스의 기반 타입 목록에 들어있는 타입이나 제네릭 클래스의 타입 파라미터에 들어있는 타입의 가시성은 그 클래스 자신의 가시성과 같거나 더 높아야 하고, 메소드의 시그니처에 사용된 모든 타입의 가시성은 그 메소드의 가시성과 같거나 더 높아야 한다는 규칙
-> 
+>
 > 어떤 함수를 호출하거나 어떤 클래스를 확장할 때 필요한 모든 타입에 접근할 수 있게 보장해준다.
 - public 함수인 giveSpeech 안에서 그보다 가시성이 더 낮은(이 경우 internal) 타입인 TalkativeButton을 참조하지 못하게 한다.
   - 해결책 : giveSpeech 확장 함수의 가시성을 internal로 바꾸거나, TalkativeButton 클래스의 가시성을 public으로 바꿔야 한다.
@@ -235,21 +235,21 @@ fun TalkativeButton.giveSpeech() {
 interface State: Serializable
 
 interface View {
-    fun getCurrentState(): State
-    fun restoreState(state: State) {}
+  fun getCurrentState(): State
+  fun restoreState(state: State) {}
 }
 ```
 ```java
 // 자바에서 내부 클래스를 사용해 View 구현하기
 public class Button implements View {
-    @Override
-    public State getCurrentState() {
-        return now ButtonState();
-    }
-    
-    @Override
-    public void restoreState(State state) { /*...*/ }
-    public class ButtonState implements State { /*...*/ }
+  @Override
+  public State getCurrentState() {
+    return now ButtonState();
+  }
+
+  @Override
+  public void restoreState(State state) { /*...*/ }
+  public class ButtonState implements State { /*...*/ }
 }
 ```
 - java.io.NotSerializableException: Button 오류 발생
@@ -261,11 +261,11 @@ public class Button implements View {
 ```kotlin
 // 중첩 클래스를 사용해 코틀린에서 View 구현하기
 class Button : View {
-    override fun getCurrentState(): State = ButtonState()
-  
-    override fun restoreState(state: State) { /*...*/ }
-    
-    class ButtonState : State { /*...*/ }
+  override fun getCurrentState(): State = ButtonState()
+
+  override fun restoreState(state: State) { /*...*/ }
+
+  class ButtonState : State { /*...*/ }
 }
 ```
 - 코틀린 중첩 클래스에 아무런 변경자가 붙지 않으면 자바 static 중첩 클래스와 같다.
@@ -291,9 +291,9 @@ class Button : View {
 - 내부 클래스 Inner 안에서 바깥쪽 클래스 Outer의 참조에 접근하려면 this@Outer라고 써야한다.
 ```kotlin
 class Outer {
-    inner class Inner {
-        fun getOuterReference(): Outer = this@Outer
-    }
+  inner class Inner {
+    fun getOuterReference(): Outer = this@Outer
+  }
 }
 ```
 - 클래스 계층을 만들되 그 계층에 속한 클래스의 수를 제한하고 싶은 경우 중첩 클래스를 쓰면 편리하다.
@@ -308,12 +308,12 @@ class Num(val value: Int) : Expr
 class Sum(val left: Expr, val right: Expr) : Expr
 
 fun eval(e: Expr): Int =
-    when (e) {
-        is Num -> e.value
-        is Sum -> eval(e.right) + evel(e.left)
-        else -> // else 분기가 꼭 있어야 한다.
-            throw IllegalArgumentException("Unknown expression")
-    }
+  when (e) {
+    is Num -> e.value
+    is Sum -> eval(e.right) + evel(e.left)
+    else -> // else 분기가 꼭 있어야 한다.
+      throw IllegalArgumentException("Unknown expression")
+  }
 ```
 - 디폴트 분기(else)가 있으면 클래스 계층에 새로운 하위 클래스를 추가하더라도 컴파일러가 when이 모든 경우를 처리하는지 제대로 검사할 수 없다. 혹 실수로 새로운 클래스 처리를 잊어버렸더라도 디폴트 분기가 선택되기 때문에 심각한 버그가 발생할 수 있다.
 - 해결책) sealed 클래스
@@ -322,9 +322,9 @@ fun eval(e: Expr): Int =
 ```kotlin
 // 기반 클래스를 sealed로 봉인한다.
 sealed class Expr {
-    // 기반 클래스의 모든 하위 클래스를 중첩 클래스로 나열한다.
-    class Num(val value: Int) : Expr()
-    class Sum(val left: Expr, val right: Expr) : Expr()
+  // 기반 클래스의 모든 하위 클래스를 중첩 클래스로 나열한다.
+  class Num(val value: Int) : Expr()
+  class Sum(val left: Expr, val right: Expr) : Expr()
 }
 
 // "When" 식이 모든 하위 클래스를 검사하므로 별도의 "else" 분기가 없어도 된다.
@@ -337,3 +337,215 @@ fun eval(e: Expr): Int =
 - sealed로 표기된 클래스는 자동으로 open임을 기억하라.
 - 내부적으로 Expr 클래스는 private 생성자를 가진다. 그 생성자는 클래스 내부에서만 호출할 수 있다.
 - sealed 인터페이스를 정의할 수는 없다.
+
+## 뻔하지 않은 생성자와 프로퍼티를 갖는 클래스 선언
+- 코틀린은 주 생성자(보통 주 생성자는 클래스를 초기화할 때 주로 사용하는 간략한 생성자로, 클래스 본문 밖에서 정의한다)와 부 생성자(클래스 본문 안에서 정의한다)를 구분한다. 또한 초기화 블록을 통해 초기화 로직을 추가할 수 있다.
+### 클래스 초기화: 주 생성자와 초기화 블록
+```kotlin
+class User(val nickname: String)
+```
+- 주 생성자는 클래스 이름 뒤에 오는 괄호로 둘러싸인 코드이다.
+- 생성자 파라미터를 지정하고 그 생성자 파라미터에 의해 초기화되는 프로퍼티를 정의하는 두 가지 목적에 쓰인다.
+```kotlin
+class User constructor(_nickname: String) {
+    val nickname: String
+    
+    init {
+        nickname = _nickname
+    }
+} 
+```
+- constructor 키워드는 주 생성자나 부 생성자 정의를 시작할 때 정의한다. init 키워드는 초기화 블록을 시작한다.
+- 초기화 블록에는 클래스의 객체가 만들어질 때(인스턴스화될 때) 실행될 초기화 코드가 들어간다.
+- 초기화 블록은 주 생성자와 함께 사용된다.
+- 주 생성자는 제한적이기 때문에 별도의 코드를 포함할 수 없으므로 초기화 블록이 필요하다. 필요하다면 클래스 안에 여러 초기화 블록을 선언할 수 있다.
+- 생성자 파라미터 _nickname에서 맨 앞의 밑줄(\_)은 프로퍼티와 생성자 파라미터를 구분해준다.
+  - 다른 방법으로 this.nickname = nickname 방식처럼 this를 써서 모호성을 없애도 된다.
+
+
+- 주 생성자 앞에 별다른 애노테이션이나 가시성 변경자가 없다면 constructor를 생략해도 된다.
+```kotlin
+class User(_nickname: String) { // 파라미터가 하나뿐인 주 생성자
+    val nickname = _nickname // 프로퍼티를 주 생성자의 파라미터로 초기화한다.
+} 
+```
+> 프로퍼티를 초기화하는 식이나 초기화 블록 안에서만 주 생성자의 파라미터를 참조할 수 있다는 점에 유의하라.
+- 주 생성자 파라미터 이름 앞에 val을 추가하는 방식으로 프로퍼티 정의와 초기화를 간략히 쓸 수 있다.
+```kotlin
+class User(val nickname: String) // "val"은 이 파라미터에 상응하는 프로퍼티가 생성된다는 뜻이다. 
+```
+- 함수 파라미터와 마찬가지로 생성자 파라미터에도 디폴트 값을 정의할 수 있다.
+```kotlin
+class User(val nickname: String, val isSubscribed: Boolean = true) // 생성자 파라미터에 대한 디폴트 값을 제공한다. 
+```
+- 클래스의 인스턴스를 만들려면 new 키워드 없이 생성자를 직접 호출하면 된다.
+```kotlin
+val hynn = User("현석") // isSubscribed 파라미터에는 디폴트 값이 쓰인다.
+println(hyun.isSubscribed) // true
+
+val gye = User("계영", false) // 모든 인자를 파라미터 선언 순서대로 지정할 수도 잇다.
+println(gye.isSubscribed) // false
+
+val hey = User("혜원", isSubscribed = false) // 생성자 인자 중 일부에 대해 이름을 지정할 수도 있다.
+println(hey.isSubscribed) // false
+```
+- 클래스에 기반 클래스가 있다면 주 생성자에서 기반 클래스의 생성자를 호출해야 할 필요가 있다. 기반 클래스를 초기화하려면 기반 클래스 이름 뒤에 괄호를 치고 생성자 인자를 넘긴다.
+```kotlin
+open class User(val nickname: String) { ... }
+
+class TwitterUser(nickname: String) : User(nickname) { ... }
+```
+- 클래스를 정의할 때 별도로 생성자를 정의하지 않으면 컴파일러가 자동으로 아무 일도 하지 않는 인자가 없는 디폴트 생성자를 만들어준다.
+```kotlin
+open class Button // 인자가 없는 디폴트 생성자가 만들어진다.
+```
+- Button의 생성자는 아무 인자도 받지 않지만, Button 클래스를 상속한 하위 클래스는 반드시 Button 클래스의 생성자를 호출해야 한다.
+```kotlin
+class RadioButton: Button() 
+```
+- 이 규칙으로 인해 기반 클래스의 이름 뒤에는 꼭 빈 괄호가 들어간다(물론 생성자 인자가 있다면 괄호 안에 인자가 들어간다).
+- 반면 인터페이스는 생성자가 없기 때문에 어떤 클래스가 인터페이스를 구현하는 경우 그 클래스의 상위 클래스 목록에 있는 인터페이스 이름 뒤에는 아무 괄호도 없다.
+
+
+- 어떤 클래스를 클래스 외부에서 인스턴스화하지 못하게 막고 싶다면 모든 생성자를 private으로 만들면 된다.
+```kotlin
+class Secretive private constructor() {} // 이 클래스의 (유일한) 주 생성자는 비공개다. 
+```
+- Secretive 클래스 안에는 주 생성자밖에 없고 그 주 생성자는 비공개이므로 외부에서는 Secretive를 인스턴스화할 수 없다.
+> 유틸리티 함수를 담아두는 역할만을 하는 클래스는 인스턴스화할 필요가 없고, 싱글턴인 클래스는 미리 정한 팩토리 메소드 등의 생성 방법을 통해서만 객체를 생성해야 한다. 코틀린에서는 이런 경우를 언어에서 기본 지원한다. 정적 유틸리티 함수 대신 최상위 함수를 사용할 수 있고, 싱글톤을 사용하고 싶으면 객체를 선언하면 된다.
+
+### 부 생성자: 상위 클래스를 다른 방식으로 초기화
+> 인자에 대한 디폴트 값을 제공하기 위해 부 생성자를 여럿 만들지 말라. 대신 파라미터의 디폴트 값을 생성자 시그니처에 직접 명시하라.
+```kotlin
+open class View {
+    constructor(ctx: Context) { // 부 생성자
+        // 코드
+    }
+    constructor(ctx: Context, attr: AttributeSet) { // 부 생성자
+        // 코드
+    }
+}
+```
+- 이 클래스는 주 생성자를 선언하지 않고(클래스 헤더에 있는 클래스 이름 뒤에 괄호가 없다), 부 생성자만 2가지 선언한다.
+- 부 생성자는 constructor 키워드로 시작한다.
+```kotlin
+// 상위 클래스의 생서자를 호출한다.
+class MyButton : View {
+    constructor(ctx: Context) : super(ctx) {
+        // ...
+    }
+    constructor(ctx: Contextm attr: AttributeSet) : super(ctx, attr) {
+        // ...
+    }
+} 
+```
+- 두 부 생성자는 super() 키워드를 통해 자신에 대응하는 상위 클래스 생성자를 호출한다.
+- MyButton의 생성자가 상위 클래스(View) 생성자에게 객체 생성을 위임한다.
+
+
+- 생성자에서 this()를 통해 클래스 자신의 다른 생성자를 호출할 수 있다.
+```kotlin
+class MyButton: View {
+    constructor(ctx: Context): this(ctx, MY_STYLE) { // 이 클래스의 다른 생성자에게 위임한다.
+        // ...
+    }
+    constructor(ctx: Context, attr: AttributeSet): super(ctx, attr) {
+        // ...
+    }
+} 
+```
+- MyButton 클래스의 생성자 중 하나가 파라미터의 디폴트 값을 넘겨서 같은 클래스의 다른 생성자(this를 사용해 참조함)에게 생성을 위임한다. 두번째 생성자는 여전히 super()를 호출한다.
+- 클래스에 주 생성자가 없다면 모든 부 생성자는 반드시 상위 클래스를 초기화하거나 다른 생성자에게 생성을 위임해야 한다.
+  - 위 예시처럼 각 부 생성자에게 객체 생성을 위임하는 화살표를 따라가면 그 끝에는 상위 클래스 생성자를 호출하는 화살표가 있어야 한다는 뜻이다.
+
+### 인터페이스에 선언된 프로퍼티 구현
+- 코틀린에서는 인터페이스에 추상 프로퍼티 선언을 넣을 수 있다.
+```kotlin
+interface Uesr {
+    val nickname: String
+}
+```
+- User 인터페이스를 구현하는 클래스가 nickname의 값을 얻을 수 있는 방법을 제공해야 한다는 뜻이다.
+- 인터페이스에 있는 프로퍼티 선언에는 뒷받침하는 필드나 게터 등의 정보가 들어있지 않다.
+  - 사실 인터페이스는 아무 상태도 포함할 수 없으므로 상태를 저장할 필요가 있다면 인터페이스를 구현한 하위 클래스에서 상태 저장을 위한 프로퍼티 등을 만들어야 한다.
+```kotlin
+// 인터페이스의 프로퍼티 구현하기
+class PrivateUser(override val nickname: String) : User // 주 생서자에 있는 프로퍼티
+
+class SubscribingUser(val email: String) : User {
+    override val nickname: String
+      get() = email.substringBefore('@') // 커스텀 게터
+}
+
+class FacebookUser(val accountId: Int) : User {
+    override val nickname = getFacebookName(accountId) // 프로퍼티 초기화 식
+}
+
+println(PrivateUser("test@kotlinlang.org").nickname) // test@kotlinlang.org
+println(SubscribingUser("test@kotlinlang.org").nickname) // test
+```
+- PrivateUser는 주 생성자 안에 프로퍼티를 직접 선언하는 간결한 구문을 사용한다. 이 프로퍼티는 User의 추상 프로퍼티를 구현하고 있으므로 override를 표시해야 한다.
+- SubscribingUser는 커스텀 게터로 nickname 프로퍼티를 설정한다. 이 프로퍼티는 뒷받침하는 필드에 값을 저장하지 않고 매번 이메일 주소에서 별명을 계산해 반환한다.
+- FacebookUser에서는 초기화 식으로 nickname 값을 초기화한다. 이때 페이스북 사용자 ID를 받아서 그 사용자의 이름을 반환해주는 getFacebookName 함수를 호출해서 nickname을 초기화한다.
+> SubscribingUser와 FacebookUser의 nickname 구현 차이에 주의하라.
+- SubscribingUser의 nickname은 매번 호출될 때마다 substringBefore를 호출해 계산하는 커스텀 게터를 활용한다.
+- FacebookUser의 nickname은 객체 초기화 시 계산한 데이터를 뒷받침하는 필드에 저장햇다가 불러오는 방식을 활용한다.
+
+
+- 인터페이스에는 추상 프로퍼티뿐 아니라 게터와 세터가 있는 프로퍼티를 선언할 수도 잇다. 물론 그런 게터와 세터는 뒷받침하는 필드를 참조할 수 없다(뒷받침하는 필드가 있다면 인터페이스에 상태를 추가하는 셈인데 인터페이스는 상태를 저장할 수 없다).
+```kotlin
+interface User {
+    val email: String
+    
+    // 프로퍼티에 뒷받침하는 필드가 없다. 대신 매번 결과를 계산해 돌려준다.
+    val nickname: String
+      get() = email.substringBefore('@') 
+} 
+```
+- 하위 클래스는 추상 프로퍼티인 email을 반드시 오버라이드해야 한다. 반면 nickname은 오버라이드하지 않고 상속할 수 있다.
+
+### 게터와 세터에서 뒷받침하는 필드에 접근
+- 값을 저장하는 동시에 로직을 실행할 수 있게 하기 위해서는 접근자 안에서 프로퍼티를 뒷받침하는 필드에 접근할 수 있어야 한다.
+```kotlin
+// 세터에서 뒷받침하는 필드 접근하기
+class User(val name: String) {
+    var address: String = "unspecified"
+      set(value: String) {
+          println("""
+            Address was changed for $name:
+            "$field" -> "$value".""".trimIndent()) // 뒷받침하는 필드 값 읽기 
+          field = value
+      }
+}
+
+val user = User("Alice")
+user.address = "Elsenheimerstrasse 47, 80687 Muenchen"
+```
+- 코틀린에서 프로퍼티의 값을 바꿀 때는 user.address = "new value"처럼 필드 설정 구문을 사용한다.
+  - 이 구문은 내부적으로 address의 세터를 호출한다.
+- 접근자의 본문에서는 field라는 특별한 식별자를 통해 뒷받침하는 필드에 접근할 수 있다.
+  - 게터에서는 field 값을 읽을 수만 있고, 세터에서는 field 값을 읽거나 쓸 수 있다.
+> 뒷받침하는 필드가 있는 프로퍼티와 그런 필드가 없는 프로퍼티에 어떤 차이가 있나?
+- 클래스의 프로퍼티를 사용하는 쪽에서 프로퍼티를 읽는 방법이나 쓰는 방법은 뒷받침하는 필드의 유무와는 관계가 없다.
+- 컴파일러는 디폴트 접근자 구현을 사용하건 직접 게터나 세터를 정의하건 관계없이 게터나 세터에서 field를 사용하는 프로퍼티에 대해 뒷받침하는 필드를 생성해준다.
+- 다만 field를 사용하지 않는 커스텀 접근자 구현을 정의한다면 뒷받침하는 필드는 존재하지 않는다(프로퍼티가 val인 경우에는 게터에 field가 없으면 되지만, var인 경우에는 게터나 세터 모두에 field가 없어야 한다).
+
+### 접근자의 가시성 변경
+- 접근자의 가시성은 기본적으로는 프로퍼티의 가시성과 같다. 하지만 원한다면 get이나 set 앞에 가시성 변경자를 추가해서 접근자의 가시성을 변경할 수 있다.
+```kotlin
+// 비공개 세터가 있는 프로퍼티 선언하기
+class LengthCounter {
+    var counter: Int = 0
+      private set // 이 클래스 밖에서 이 프로퍼티의 값을 바꿀 수 없다.
+    
+    fun addWord(word: String) {
+        counter += word.length
+    }
+}
+
+val lengthCounter = LengthCounter()
+lengthCounter.addWord("Hi!")
+println(lengthCounter.counter) // 3
+```
+- 이 클래스는 자신에게 추가된 모든 단어의 길을 합산한다. 전체 길이를 저장하는 프로퍼티는 클라이언트에게 제공하는 API의 일부분이므로 public으로 외부에 공개한다.
+- 단어 길이의 합을 마음대로 바꾸지 못하게 기본 가시성을 가진 게터를 컴파일러가 생성하게 내버려 두는 대신 세터의 가시성을 private으로 지정한다.
