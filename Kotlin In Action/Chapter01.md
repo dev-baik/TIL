@@ -3,7 +3,9 @@
 > - 코틀린 언어의 주요 특성
 > - 코틀린이 다른 언어보다 더 나은 점
 > - 코틀린으로 코드를 작성하고 실행하는 방법
-- - -
+
+---
+
 ## 코틀린은 무엇인가?
 > 자바 플랫폼에서 돌아가는 새로운 프로그래밍 언어다.
 > 간결하고 실용적이며, 자바 코드와의 상호운용성을 중시한다.
@@ -65,16 +67,128 @@ fun main(args: Array<String>) {
 ### 함수형 프로그래밍의 핵심 개념
 #### 일급 시민인 함수
 함수(프로그램의 행동을 나타내는 코드 조각)를 일반 값처럼 다룰 수 있다. 함수를 변수에 저장할 수 있고, 함수를 인자로 다른 함수에 전달할 수 있으며, 함수에서 새로운 함수를 만들어서 반환할 수 있다.
+```kotlin
+// 함수를 변수에 저장
+val add: (Int, Int) -> Int = { a, b -> a + b }
+
+// 함수를 인자로 다른 함수에 전달
+fun calculate(x: Int, y: Int, operation: (Int, Int) -> Int): Int {
+    return operation(x, y)
+}
+
+val result = calculate(10, 5, add)
+println(result) // 출력: 15
+```
+```kotlin
+// 함수에서 새로운 함수를 만들어서 반환
+fun addX(x: Int): (Int) -> Int {
+    // x를 받아들이고 x를 더하는 함수를 반환
+    return { y -> x + y }
+}
+
+fun main() {
+    val add5 = addX(5) // addX 함수를 호출하여 x=5인 함수를 생성
+    val result = add5(3) // 반환된 함수를 호출하여 5 + 3 계산
+    println(result) // 출력: 8
+}
+```
 #### 불변성
 함수형 프로그래밍에서는 일단 만들어지고 나면 내부 상태가 절대로 바뀌지 않는 불변 객체를 사용해 프로그램을 작성한다.
+```kotlin
+data class Person(val name: String, val age: Int)
+
+fun main() {
+    val person1 = Person("Alice", 30)
+    val person2 = person1.copy(name = "Bob")
+
+    println(person1) // 출력: Person(name=Alice, age=30)
+    println(person2) // 출력: Person(name=Bob, age=30)
+}
+```
 #### 부수 효과 없음
 함수형 프로그래밍에서는 입력이 같으면 항상 같은 출력을 내놓고 다른 객체의 상태를 변경하지 않으며, 함수 외부나 다른 바깥 환경과 상호작용하지 않는 순수 함수를 사용한다.
+```kotlin
+// 순수하지 않은 함수: 외부 상태를 변경하는 함수
+var total = 0
 
+fun impureAdd(a: Int) {
+    total += a
+}
+
+fun main() {
+    impureAdd(5) // 외부 상태 변경
+    println(total) // 출력: 5
+
+    impureAdd(3) // 다시 호출하여 외부 상태 변경
+    println(total) // 출력: 8
+}
+```
 ### 함수형 프로그래밍의 이점
 #### 간결성
 함수형 코드는 그에 상응하는 명령형 코드에 비해 더 간결하며 우아하다. (순수) 함수를 값처럼 활용할 수 있으면 더 강력한 추상화를 할 수 있고 강력한 추상화를 사용해 코드 중복을 막을 수 있다.
+```kotlin
+// 고차 함수 예시 1: 다른 함수를 인자로 받는 함수
+fun calculate(a: Int, b: Int, operation: (Int, Int) -> Int): Int {
+    return operation(a, b)
+}
+
+fun add(x: Int, y: Int): Int {
+    return x + y
+}
+
+fun subtract(x: Int, y: Int): Int {
+    return operate(x, y) { a, b -> a - b }
+}
+
+fun main() {
+    val result1 = calculate(10, 5, ::add)
+    println("Result of addition: $result1")
+
+    val result2 = calculate(10, 5, ::subtract)
+    println("Result of subtraction: $result2")
+}
+```
+```kotlin
+// 고차 함수 예시 2: 함수를 반환하는 함수
+fun operationChoice(operator: String): (Int, Int) -> Int {
+    return when (operator) {
+        "add" -> ::add
+        "subtract" -> ::subtract
+        else -> { a, b -> a * b }
+    }
+}
+
+fun main() {
+    val operation = operationChoice("add")
+    val result = operation(10, 5)
+    println("Result of chosen operation: $result")
+}
+```
 #### 다중 스레드를 사용해도 안전하다
-다중 스레드 프로그램에서는 적절한 동기화 없이 같은 데이터를 여러 스레드가 변경하는 경우 가장 많은 문제가 생긴다. 하지만, 불변 데이터 구조를 사용하고 순수 함수를 그 데이터 구조에 적용한다면 다중 스레드 혼경에서 같은 데이터를 여러 스레드가 변경할 수 없다. 즉, 복잡한 동기화를 적용하지 않아도 된다.
+다중 스레드 프로그램에서는 적절한 동기화 없이 같은 데이터를 여러 스레드가 변경하는 경우 가장 많은 문제가 생긴다. 하지만, 불변 데이터 구조를 사용하고 순수 함수를 그 데이터 구조에 적용한다면 다중 스레드 환경에서 같은 데이터를 여러 스레드가 변경할 수 없다. 즉, 복잡한 동기화를 적용하지 않아도 된다.
+```kotlin
+fun main() {
+    // 불변한 데이터 구조인 리스트를 생성
+    val numbers = listOf(1, 2, 3, 4, 5)
+
+    // 여러 스레드가 이 데이터를 동시에 읽어도 문제 없음
+
+    // 순수 함수를 사용하여 리스트를 변경하지 않고 결과를 계산
+    val sum = calculateSum(numbers)
+    val product = calculateProduct(numbers)
+
+    println("Sum: $sum")       // 출력: Sum: 15
+    println("Product: $product") // 출력: Product: 120
+}
+
+fun calculateSum(numbers: List<Int>): Int {
+    return numbers.sum()
+}
+
+fun calculateProduct(numbers: List<Int>): Int {
+    return numbers.reduce { acc, num -> acc * num }
+}
+```
 #### 테스트하기 쉽다
 부수 효과가 있는 함수는 그 함수를 실행할 때 필요한 전체 환경을 구성하는 준비 코드가 따로 필요하지만, 순수 함수는 그런 준비 코드 없이 독립적으로 테스트할 수 있다.
 
