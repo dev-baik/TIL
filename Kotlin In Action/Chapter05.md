@@ -256,3 +256,144 @@ println(dmitrysAgeFunction()) // 45
 ```
 - personsAgeFunction은 인자가 하나(인자로 받은 사람의 나이를 반환)이지만, dmitrysAgeFunction은 인자가 없는(참조를 만들 때 p가 가리키던 사람의 나이를 반환) 함수라는 점에 유의하라.
 - 코틀린 1.0에서는 p::age 대신에 { p.age }라고 직접 객체의 프로퍼티를 돌려주는 람다를 만들어야만 한다.
+
+## 컬렉션 함수형 API
+- 함수형 프로그래밍 스타일을 사용하면 컬렉션을 다룰 때 편리하다. 대부분의 작업에 라이브러리 함수를 활용할 수 있고 그로 인해 코드를 아주 간결하게 만들 수 있다.
+
+### 필수적인 함수: filter와 map
+- filter와 map은 컬렉션을 활용할 때 기반이 되는 함수다. 대부분의 컬렉션 연산을 이 두 함수를 통해 표현할 수 있다.
+
+> 함수형 프로그래밍에는 람다나 다른 함수를 인자로 받거나 함수를 반환하는 함수를 고차 함수(HOF, Higt Order Function)라고 부른다. 고차함수는 기본 함수를 조합해서 새로운 연산을 정의하거나, 다른 고차 함수를 통해 조합된 함수를 또 조합해서 더 복잡한 연산을 쉽게 정의할 수 있다는 장점이 있다. 이런 식으로 고차 함수와 단순한 함수를 이리저리 조합해서 코드를 작성하는 기법을 컴비네이터 패턴(combinator pattern)이라 부르고, 컴비네이터 패턴에서 복잡한 연산을 만들기 위해 값이나 함수를 조합할 때 사용하는 고차 함수를 컴비네이터라고 부른다.
+
+- filter 함수는 이터레이션하면서 주어진 람다에 각 원소를 넘겨서 람다가 true를 반환하는 원소만 모은다.
+```kotlin
+data class Person(val name: String, val age: Int)
+
+val list = listOf(1, 2, 3, 4)
+println(list.filter { it % 2 == 0 }) // [2, 4]
+```
+- 결과는 입력 컬렉션의 원소 중에서 주어진 술어(참/거짓을 반환하는 함수를 술어(predicate)라고 한다)를 만족하는 원소만으로 이뤄진 새로운 컬렉션이다.
+```kotlin
+val people = listOf(Person("Alice", 29), Person("Bob", 31))
+println(people.filter { it.age > 30 }) // [Person(name=Bob, age=31)]
+```
+- filter 함수는 컬렉션에서 원치 않는 원소를 제거한다. 하지만 filter는 원소를 변환할 수는 없다.
+- map 함수는 주어진 람다를 컬렉션의 각 원소에 적용한 결과를 모아서 새 컬렉션을 만든다.
+```kotlin
+val list = listOf(1, 2, 3, 4)
+println(list.map { it * it }) // [1, 4, 9, 16 ]
+```
+```kotlin
+// 사람 이름의 리스트 출력
+val people = listOf(Person("Alice", 29), Person("Bob", 31))
+println(people.map { it.name }) // [Alice, Bob]
+```
+```kotlin
+// 멤버 참조 사용
+people.map(Person::name)
+```
+```kotlin
+// 30살 이상인 사람의 이름 출력
+// people.filter({it.age > 30}).map(Person::name)
+people.filter { it.age > 30 }.map(Person::name)
+```
+```kotlin
+// 가장 나이 많은 사람의 이름(들)
+people.filter { it.age == people.maxBy(Person::age)!!.age }
+```
+- 단점 : 최댓값을 구하는 작업을 계속 반복
+```kotlin
+val maxAge = people.maxBy(Person::age)!!.age
+people.filter { it.age == maxAge }
+```
+
+> 꼭 필요하지 않은 경우 굳이 계산을 반복하지 말라! 람다를 인자로 받는 함수에 람다를 넘기면 겉으로 볼 때는 단순해 보이는 식이 내부 로직의 복잡도로 인해 실제로는 엄청나게 불합리한 계산식이 될 수 때가 있다.
+
+```kotlin
+val numbers = mapOf(0 to "zero", 1 to "one")
+println(numbers.mapValues { it.value.toUpperCase() }) {0=ZERO, 1=ONE}
+```
+- 맵의 경우 키와 값을 처리하는 함수가 따로 존재한다. filterKeys와 mapKeys는 키를 걸러 내거나 반환하고, filterValues와 mapValues는 값을 걸러 내거나 반환한다.
+
+### all, any, count, find: 컬렉션에 술어 적용
+- 컬렉션에 대해 자주 수행하는 연산으로 컬렉션의 모든 원소가 어떤 조건을 만족하는 지 판단하는(또는 그 변종으로 컬렉션 안에 어떤 조건을 만족하는 원소가 있는지 판단하는) all과 any 연산이 있다.
+- count 함수는 조건을 만족하는 원소의 개수를 반환하며, find 함수는 조건을 만족하는 첫 번째 원소를 반환한다.
+```kotlin
+// 모든 원소가 이 술어를 만족하는 지 궁금하다면 all 함수를 쓴다.
+val canBeInClub27 = { p: Person -> p.age <= 27 }
+
+val people = listOf(Person("Alice", 27), Person("Bob", 31))
+println(people.all(canBeInClub27)) // false
+```
+```kotlin
+// 술어를 만족하는 원소가 하나라도 있는지 궁금하다면 any를 쓴다.
+println(people.any(canBeInClub27)) // true 
+```
+- 어떤 조건에 대해 !all을 수행한 결과와 그 조건의 부정에 대해 any를 수행하는 결과는 같다(드 모르강의 법칙). 또 어떤 조건에 대해 !any를 수행한 결과와 그 조건의 부정에 대해 all을 수행한 결과도 같다.
+  - 가독성을 높이려면 any와 all 앞에 !를 붙이지 않는 편이 낫다.
+```kotlin
+val list = listOf(1, 2, 3)
+println(!list.all { it == 3 }) // true
+
+println(list.any { it != 3 }) // true
+```
+```kotlin
+// 술어를 만족하는 원소의 개수를 구하려면 count를 사용한다.
+val people = listOf(Person("Alice", 27), Person("Bob", 31))
+println(people.count(canBeInClub27)) // 1
+```
+
+> **함수를 적재적소에 사용하라: count와 size**
+> 
+> count가 있다는 사실을 잊어버리고, 컬렉션을 필터링한 결과의 크기를 가져오는 경우가 있다.
+> ```kotlin
+> println(people.filter(canBeInClub27).size) // 1
+> ```
+> 하지만 이렇게 처리하면 조건을 만족하는 모든 원소가 들어가는 중간 컬렉션이 생긴다. 반면 count는 조건을 만족하는 원소의 개수만을 추적하지 조건을 만족하는 원소를 따로 저장하지 않는다. 따라서 count가 훨씬 더 효율적이다.
+
+```kotlin
+// 술어를 만족하는 원소를 하나 찾고 싶으면 find 함수를 사용한다.
+val people = listOf(Person("Alice", 27), Person("Bob", 31))
+println(people.find(canBeInClub27)) // Person(name=Alice, age=27)
+```
+- 이 식은 조건을 만족하는 원소가 하나라도 있는 경우 가장 먼저 조건을 만족한다는 확인된 원소를 반환하며, 만족하는 원소가 전혀 없는 경우 null을 반환한다.
+- 조건을 만족하는 원소가 없으면 null이 나온다는 사실을 더 명확히 하고 싶다면 firstOrNull을 쓸 수 있다.
+
+### groupBy: 리스트를 여러 그룹으로 이뤄진 맵으로 변경
+```kotlin
+val people = listOf(Person("Alice", 27), Person("Bob", 31), Person("Carol", 31))
+println(people.groupBy { it.age })
+
+// 결과
+{29=[Person(name=Bob, age=29)],
+ 31=[Person(name=Alice, age=31), Person(name=Carol, age=31)]}
+```
+- 각 그룹은 리스트다. 따라서 groupBy의 결과 타이은 Map<Int, List<Person>>이다. 필요하면 이 맵을 mapKeys나 mapValues 등을 사용해 변경할 수 있다.
+```kotlin
+val list = listOf("a", "ab", "b")
+println(list.groupBy(String::first)) // {a=[a, ab], b=[b]}
+```
+- first는 String의 멤버가 아니라 확장 함수지만 여전히 멤버 참조를 사용해 first에 접근할 수 있다.
+
+### flapMap과 flatten: 중첩된 컬렉션 안의 원소 처리
+```kotlin
+class Book(val title: String, val authors: List<String>)
+
+books.flatMap { it.authors }.toSet() // books 컬렉션에 있는 책을 쓴 모든 저자의 집합
+```
+- flatMap 함수는 먼저 인자로 주어진 람다를 컬렉션의 모든 객체에 적용하고(또는 매핑하기(map)) 람다를 적용한 결과 얻어지는 여러 리스트를 한 리스트로 한데 모은다(또는 펼치기(flatten)).
+```kotlin
+val strings = listOf("abc", "def")
+println(strings.flatMap { it.toList() }) // [a, b, c, d, e, f]
+```
+- toList 함수를 문자열에 적용하면 그 문자열에 속한 모든 문자로 이뤄진 리스트가 만들어진다.
+```kotlin
+val books = listOf(Book("Thursday Next", listOf("Jasper Fforde")),
+                Book("Mort", listOf("Terry Pratchett")), 
+                Book("Good Omens", listOf("Terry Pratchett", "Neil Gaiman")))
+
+println(book.flatMap { it.authors }.toSet())
+// 결과: [Jasper Fforde, Terry Pratchett, Neil Gaiman]
+```
+- toSet은 flatMap의 결과 리스트에서 중복을 없애고 집합을 만든다.
+- 특별히 반환해야 할 내용이 없어 리스트의 리스트를 평평하게 펼치기만 하면 되는 경우 listOfLists.flatten()처럼 flatten 함수를 사용할 수 있다.
