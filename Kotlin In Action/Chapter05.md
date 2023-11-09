@@ -500,3 +500,123 @@ println(file.isInsideHiddenDirectory()) // true
 - 여기서도 첫 번째 원소를 지정하고 시퀀스의 한 원소로부터 다음 원소를 제공함으로써 시퀀스를 만든다.
 - any를 find로 바꾸면 원하는 디렉터리를 찾을 수도 있다.
 - 이렇게 시퀀스를 사용하면 조건을 만족하는 디렉터를 찾은 뒤에는 더 이상 상위 디렉터리를 뒤지지 않는다.
+
+## 자바 함수형 인터페이스 활용
+```kotlin
+button.setOnClickListener { /* 클릭 시 수행할 동작 */ } // 람다를 인자로 넘김
+```
+- Button 클래스는 setOnClickListener 메소드를 사용해 버튼의 리스너를 설정한다. 이때 인자의 타입은 OnClickListener다.
+```java
+public class Button {
+    public void setOnClickListener(OnClickListener l) { ... }
+}
+```
+- OnClickListener 인터페이스는 onClick이라는 메서드만 선언된 인터페이스다.
+```java
+public interface OnClickListener {
+    void onClick(View v);
+}
+```
+- 자바 8 이전의 자바에서는 setOnClickListener 메서드에게 인자로 넘기기 위해 무명 클래스의 인스턴스를 만들어야만 했다.
+```java
+button.setOnClickListener(new OnclickListener() {
+    @Override
+    public void onClick(View v) {
+        ...
+    }
+})
+```
+- 코틀린에서는 무명 클래스 인스턴스 대신 람다를 넘길 수 있다.
+```kotlin
+button.setOnClickListener { view -> ... }
+```
+- 이런 코드가 작동하는 이유는 OnClickListener에 추상 메소드가 단 하나만 있기 때문이다. 그런 인터페이스를 함수형 인터페이스 또는 SAM(단일 추상 메서드) 인터페이스라고 한다.
+
+### 자바 메소드에 람다를 인자로 전달
+- 함수형 인터페이스를 인자로 원하는 자바 메소드에 코틀린 람다를 전달할 수 있다.
+```java
+void postponeComputation(int delay, Runnable computation);
+```
+- 코틀린에서 람다를 이 함수에 넘길 수 있다. 컴파일러는 자동으로 람다를 Runnable 인스턴스로 변환해준다.
+```kotlin
+postponeComputation(1000) { println(42) }
+```
+- Runnable 인스턴스 = Runnable을 구현한 무명 클래스의 인스턴스
+- 컴파일러는 자동으로 그런 무명 클래스와 인스턴스를 만들어준다. 이때 그 무명 클래스에 있는 유일한 추상 메소드를 구현할 때 람다 본문을 메소드 본문으로 사용한다. 여기서는 Runnable의 run이 그런 추상 메소드다.
+- Runnable을 구현하는 무명 객체를 명시적으로 만들어서 사용할 수도 있다.
+```kotlin
+// 객체 식을 함수형 인터페이스 구현으로 넘긴다.
+postponeComputation(1000, object: Runnable {
+    override fun run() {
+        println(42)
+    }
+}) 
+```
+- 하지만 람다와 무명 객체 사이에는 차이가 있다.
+  - 객체를 명시적으로 선언하는 경우 메소드를 호출할 때마다 새로운 객체가 생성된다.
+  - 람다는 다르다. 정의가 들어있는 함수의 변수에 접근하지 않는 람다에 대응하는 무명 객체를 메소드를 호출할 때마다 반복 사용한다.
+```kotlin
+// 프로그램 전체에서 Runnable의 인스턴스는 단 하나만 만들어진다.
+postponeComputation(1000) { println(42) }
+```
+- 따라서 명시적인 object 선언을 사용하면서 람다와 동일한 코느는 다음과 같다. 이 경우 Runnable 인스턴스를 변수에 저장하고 메소드를 호출할 때마다 그 인스턴스를 재사용한다.
+```kotlin
+// 전역 변수로 컴파일되므로 프로그램 안에 단 하나의 인스턴스만 존재한다.
+val runnable = Runnable { println(42) }
+
+fun handleComputation() {
+    // 모든 handleComputation 호출에 같은 객체를 사용한다.
+    postponeComputation(1000, runnable) 
+}
+```
+- 람다가 주변 영역의 변수를 포획한다면 매 호출마다 같은 인스턴스를 사용할 수 없다. 그런 경우 컴파일러는 매번 주변 영역의 변수를 포획한 새로운 인스턴스를 생성해준다.
+```kotlin
+fun handleComputation(id: String) {
+    // handleComputation을 호출할 때마다 새로 Runnable 인스턴스를 만든다.
+    postponeComputation(1000, runnable)
+} 
+```
+- 람다에 대해 무명 클래스를 만들고 그 클래스의 인스턴스를 만들어서 메소드에 넘긴다는 설명은 함수형 인터페이스를 받는 자바 메소드를 코틀린에서 호출할 때 쓰는 방식을 설명해준다.
+- 하지만, 컬렉션을 확장한 메소드에 람다를 넘기는 경우 코틀린은 그런 방식을 사용하지 않는다.
+  - 코틀린 inline으로 표시된 코틀린 함수에게 람다를 넘기면 아무런 무명 클래스도 만들어지지 않는다
+    - 대부분의 코틀린 확장 함수들은 inline 표시가 붙어있다. (8장)
+- 대부분의 경우 람다와 자바 함수형 인터페이스 사이의 변환은 자동으로 이뤄진다.
+
+### SAM 생성자: 람다를 함수형 인터페이스로 명시적으로 변경
+- SAM 생성자는 람다를 함수형 인터페이스의 인스턴스로 변환할 수 있게 컴파일러가 자동으로 생성한 함수다.
+- 컴파일러가 자동으로 람다를 함수형 인터페이스 무명 클래스로 바꾸지 못하는 경우 SAM 생성자를 사용할 수 있다.
+  - 함수형 인터페이스의 인스턴스를 반환하는 메소드가 있다면 람다를 직접 반환할 수 없고, 반환하고픈 람다를 SAM 생성자로 감싸야 한다.
+```kotlin
+fun createAllDoneRunnable(): Runnable {
+    return Runnable { println("All done!") }
+}
+
+createAllDoneRunnable().run() // All done!
+```
+- SAM 생성자의 이름은 사용하려는 함수형 인터페이스의 이름과 같다.
+- SAM 생성자는 그 함수형 인터페이스의 유일한 추상 메소드의 본문에 사용할 람다만을 인자로 받아서 함수형 인터페이스를 구현하는 클래스의 인스턴스를 반환한다.
+- 람다로 생성한 함수형 인터페이스 인스턴스를 변수에 저장해야 하는 경우에도 SAM 생성자를 사용할 수 있다.
+```kotlin
+// SAM 생성자를 사용해 listener 인스턴스 재사용하기
+val listener = OnClickListener { view -> 
+    val text = when (view.id) {
+        R.id.button1 -> "First button"
+        R.id.button2 -> "Second button"
+        else -> "Unknown button"
+    }
+    toast(text)
+}
+
+button1.setOnClickListener(listener)
+button2.setOnClickListener(listener)
+```
+- OnClickListener를 구현하는 객체 선언을 통해 리스너를 만들 수도 있지만 SAM 생성자를 쓰는 쪽이 더 간결하다.
+
+> **람다와 리스너 등록/해제하기**
+>
+> 람다에는 무명 객체와 달리 인스턴스 자신을 가리키는 this가 없다는 사실에 유의하라. 따라서 람다를 변환한 무명 클래스의 인스턴스를 참조할 방법이 없다. 컴파일러 입장에서 보면 람다는 코드 블록일 뿐이고, 객체가 아니므로 객체처럼 람다를 참조할 수는 없다. 람다 안에서 this는 그 람다를 둘러싼 클래스의 인스턴스를 가리킨다.
+>
+> 이벤트 리스너가 이벤트를 처리하다가 자기 자신의 리스너 등록을 해제해야 한다면 람다를 사용할 수 없다. 그런 경우 람다 대신 무명 객체를 사용해 리스너를 구현한다. 무명 객체 안에서는 this가 그 무명 객체 인스턴스 자신을 가리킨다. 따라서 리스너를 해제하는 API 함수에게 this를 넘길 수 있다.
+
+- 함수형 인터페이스를 요구하는 메소드를 호출할 때 대부분의 SAM 변환을 컴파일러가 자동으로 수행할 수 있지만, 가끔 오버라이드한 메소드 중에서 어떤 타입의 메소드를 선택해 람다를 변환해 넘겨줘야 할지 모호한 때가 있다.
+  - 그런 경우 명시적으로 SAM 생성자를 적용하면 컴파일 오류를 피할 수 있다.
