@@ -53,7 +53,7 @@ fun <T> joinToString(
     return result.toString()
 }
 ```
-- joinToString 함수는 컬렉션의 원소를 StringBuilder의 뒤에 덧붙인다. 이때 원소 사이에 구분자(separator)를 추가하고, StringBuilder의 맨 앞과 맨 뒤에는 접두사(prefix)와 접미사(postfix)를 추가한다.
+- joinToString 함수는 컬렉션의 원소를 [StringBuilder](https://velog.io/@dev-baik/String-vs-StringBuilder-vs-StringBuffer)의 뒤에 덧붙인다. 이때 원소 사이에 구분자(separator)를 추가하고, StringBuilder의 맨 앞과 맨 뒤에는 접두사(prefix)와 접미사(postfix)를 추가한다.
 - 이 함수는 제네릭(generic)하다. 즉, 어떤 타입의 값을 원소로 하는 컬렉션이든 처리할 수 있다.
 ```kotlin
 val list = listOf(1, 2, 3)
@@ -67,7 +67,7 @@ joinToString(collection, separator = " ", prefix = " ", postfix = ".")
 - 코틀린으로 작성한 함수를 호출할 때는 함수에 전달하는 인자 중 일부(또는 전부)의 이름을 명시할 수 있다. 호출 시 인자 중 어느 하나라도 이름을 명시하고 나면 혼동을 막기 위해 그 뒤에 오는 모든 인자는 이름을 꼭 명시해야 한다.
 
 ### 디폴트 파라미터 값
-- 자바에서는 일부 클래스에서 `오버로딩(overloading)`한 메서드가 너무 많아진다는 문제가 있다. java.lang.Thread에 8가지 생성자 메소드들은 하위 호환성을 유지하거나 API 사용자에게 편의를 더하는 등의 여러 가지 이유로 만들어진다. 하지만 어느 경우든 중복이라는 결과는 같다.
+- 자바에서는 일부 클래스에서 오버로딩(overloading)한 메서드가 너무 많아진다는 문제가 있다. java.lang.Thread에 8가지 생성자 메소드들은 하위 호환성을 유지하거나 API 사용자에게 편의를 더하는 등의 여러 가지 이유로 만들어진다. 하지만 어느 경우든 중복이라는 결과는 같다.
 - 오버로딩 함수에 대해 대부분의 설명을 반복해 달아야하고, 인자 중 일부가 생략된 오버로드 함수를 호출할 때 어떤 함수가 불릴지 모호한 경우가 생긴다.
 
 
@@ -97,9 +97,77 @@ joinToString(list, postfix = ";", prefix = "# ") // # 1, 2, 3;
 - 일부 연산에는 비슷하게 중요한 역할을 하는 클래스가 둘 이상 있을 수도 있다. 중요한 객체는 하나뿐이지만 그 연산을 객체의 인스턴스 API에 추가해서 API를 너무 크게 만들고 싶지는 않은 경우도 있다.
   - 그 결과 다양한 정적 메서드를 모아두는 역할만 담당하며, 특별한 상태나 인스턴스 메소드는 없는 클래스가 생겨난다.
 
+`객체의 인스턴스 API = 객체가 가지는 인스턴스 메서드와 프로퍼티`
+```kotlin
+// 비슷하게 중요한 역할을 하는 클래스가 둘 이상 있는 경우
+// 다양한 정적 메서드를 모아두는 역할만 담당하며, 특별한 상태나 인스턴스 메소드는 없는 클래스가 생겨난다.
+
+class Rectangle(val width: Double, val height: Double) {
+    fun calculateArea(): Double {
+        return width * height
+    }
+}
+
+class Circle(val radius: Double) {
+    fun calculateArea(): Double {
+        return Math.PI * radius * radius
+    }
+}
+
+// 정적 유틸리티 클래스
+class GeometryUtil {
+    companion object {
+        fun calculateArea(shape: Any): Double {
+            return when (shape) {
+                is Rectangle -> shape.calculateArea()
+                is Circle -> shape.calculateArea()
+                else -> throw IllegalArgumentException("Unknown shape")
+            }
+        }
+    }
+}
+
+fun main() {
+    val rectangle = Rectangle(5.0, 3.0)
+    val circle = Circle(2.0)
+  
+    val area1 = GeometryUtil.calculateArea(rectangle)
+    val area2 = GeometryUtil.calculateArea(circle)
+  
+    println("Area of rectangle: $area1")
+    println("Area of circle: $area2")
+}
+```
+```kotlin
+// 중요한 객체는 하나뿐이지만 그 연산을 객체의 인스턴스 API에 추가해서 API를 너무 크게 만드는 경우
+// 다양한 정적 메서드를 모아두는 역할만 담당하며, 특별한 상태나 인스턴스 메소드는 없는 클래스가 생겨난다.
+
+class MathUtility {
+    companion object {
+        fun add(a: Int, b: Int): Int {
+            return a + b
+        }
+
+        fun subtract(a: Int, b: Int): Int {
+            return a - b
+        }
+
+        // 다른 수학 함수들도 추가 가능
+    }
+}
+
+fun main() {
+    val result1 = MathUtility.add(5, 3)
+    val result2 = MathUtility.subtract(8, 2)
+
+    println("Addition: $result1")      // 출력: Addition: 8
+    println("Subtraction: $result2")   // 출력: Subtraction: 6
+}
+```
+
 
 - 코틀린에서는 이런 무의미한 클래스가 필요없다. 대신 함수를 직접 소스 파일의 최상위 수준, 모든 다른 클래스의 밖에 위치시키면 된다.
-- 그런 함수들은 여전히 그 파일의 맨 앞에 정의된 패키지의 멤버 함수이므로 다른 패키지에서 그 함수를 사용하고 싶을 때는 그 함수가 정의된 패키지를 임포트해야 한다. 하지만 임포트 시 유틸리티 클래스 이름이 추가로 들어갈 필요는 없다.
+- 그런 함수들은 여전히 그 파일의 맨 앞에 정의된 패키지의 멤버 함수(클래스의 멤버로 선언되는 연산자 및 함수)이므로 다른 패키지에서 그 함수를 사용하고 싶을 때는 그 함수가 정의된 패키지를 임포트해야 한다. 하지만 임포트 시 유틸리티 클래스 이름이 추가로 들어갈 필요는 없다.
 ```kotlin
 // joinToString() 함수를 최상위 함수로 선언하기
 package strings
@@ -107,6 +175,10 @@ package strings
 fun joinToString(...): String { ... }
 ```
 - JVM이 클래스 안에 들어있는 코드만을 실행할 수 있기 때문에 컴파일러는 이 파일을 컴파일할 때 새로운 클래스를 정의해준다.
+  - 새로운 클래스?
+    - package 내에 선언된 함수를 클래스의 정적 메서드로 만드는 별도의 유틸리티 클래스를 자동 생성해준다.
+    - 생성된 클래스명 = 해당 패키지의 이름 + "Kt" 접미사가 추가된 이름
+      - 즉, strings 패키지에 속하는 클래스에서 joinToString 함수를 호출할 때 사용하는 별도의 유틸리티 클래스인 StringsKt 클래스를 생성한다.
 
 #### 최상위 프로퍼티
 - 함수와 마찬가지로 프로퍼티도 파일의 최상위 수준에 놓을 수 있다.
@@ -122,14 +194,14 @@ fun reportOperationCount() {
 }
 ```
 - 이런 프로퍼티의 값은 정적 필드에 저장된다.
-- 최상위 프로퍼티를 활용해 코드에 상수를 추가할 수 있다.
+- 최상위 프로퍼티를 활용해 코드에 [상수](https://ko.wikipedia.org/wiki/%EC%83%81%EC%88%98)를 추가할 수 있다.
 ```kotlin
 val UNIX_LINE_SEPARATOR = "\n" 
 ```
 - 기본적으로 최상위 프로퍼티도 다른 모든 프로퍼티처럼 접근자 메소드를 통해 자바 코드에 노출된다(val의 경우 게터, var의 경우 게터와 세터가 생긴다).
 - 겉으론 상수처럼 보이는데, 실제로는 게터를 사용해야 한다면 자연스럽지 못하다.
 - 더 자연스럽게 사용하려면 이 상수를 public static final 필드로 컴파일해야 한다.
-  - const 변경자를 추가하면 프로퍼티를 public static final 필드로 컴파일하게 만들 수 있다(단, 원시 타입과 String 타입의 프로퍼티만 const로 지정할 수 있다).
+  - [const](https://velog.io/@dev-baik/%EB%B3%80%EC%88%98-%EC%84%A0%EC%96%B8#const) 변경자를 추가하면 프로퍼티를 public static final 필드로 컴파일하게 만들 수 있다(단, 원시 타입과 String 타입의 프로퍼티만 const로 지정할 수 있다).
 ```kotlin
 const val UNIX_LINE_SEPARATOR = "\n"
 ```
@@ -150,13 +222,13 @@ println("Kotlin".lastChar()) // n
 - 확장 함수를 만들려면 추가하려는 함수 이름 앞에 그 함수가 확장한 클래스의 이름을 덧붙이기만 하면 된다.
 - 클래스의 이름을 `수신 객체 타입(receiver type)`이라 부르며, 확장 함수가 호출되는 대상이 되는 값(객체)을 `수신 객체(receiver object)`라고 부른다.
   - 이 예제에서는 String이 수신 객체 타입이고 "kotlin"이 수신 객체다.
-- 일반 메소드와 마찬가지로 확장 함수 본문에서도 this를 생략할 수 있다.
+- 일반 메소드와 마찬가지로 확장 함수 본문에서도 [this](https://velog.io/@dev-baik/%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4-%EB%A9%A4%EB%B2%84/this.#this)를 생략할 수 있다.
 ```kotlin
 package strings
 
 fun String.lastChar(): Char = get(length - 1) 
 ```
-- 확장 함수 내부에서는 일반적인 인스턴스 메소드의 내부에서와 마찬가지로 수신 객체의 메소드나 프로퍼티를 바로 사용할 수 있다. 하지만 확장 함수가 캡슐화를 깨지는 않는다.
+- 확장 함수 내부에서는 일반적인 인스턴스 메소드의 내부에서와 마찬가지로 수신 객체의 메소드나 프로퍼티를 바로 사용할 수 있다. 하지만 확장 함수가 <u>캡슐화</u>를 깨지는 않는다.
 - 클래스 안에서 정의한 메서드와 달리 확장 함수 안에서는 클래스 내부에서만 사용할 수 있는 비공개(private) 멤버나 보호된(protected) 멤버를 사용할 수 없다.
 
 ### 임포트와 확장 함수
@@ -178,10 +250,11 @@ import strings.lastChar as last
 val c = "Kotlin".last() 
 ```
 - 한 파일 안에서 다른 여러 패키지에 속해있는 이름이 같은 함수를 가져와 사용해야 하는 경우 이름을 바꿔서 임포트하면 이름 충돌을 막을 수 있다.
-- 물론 일반적인 클래스나 함수라면 그 전체 이름을 써도 된다. 하지만 코틀린 문법상 확장 함수는 반드시 짧은 이름을 써야 한다. 따라서 임포트할 때 이름을 바꾸는 것이 확장 함수 이름 충돌을 해결할 수 있는 유일한 방법이다.
+
+> 물론 일반적인 클래스나 함수라면 그 전체 이름을 써도 된다. 하지만 코틀린 문법상 확장 함수는 반드시 짧은 이름을 써야 한다. 따라서 임포트할 때 이름을 바꾸는 것이 확장 함수 이름 충돌을 해결할 수 있는 유일한 방법이다.
 
 ### 자바에서 확장 함수 호출
-- 내부적으로 확장 함수는 수신 객체를 첫 번째 인자로 받는 정적 메소드다. 그래서 확장 함수를 호출해도 다른 어댑터 객체나 실행 시점 부가 비용이 들지 않는다.
+- 내부적으로 확장 함수는 수신 객체를 첫 번째 인자로 받는 [정적 메소드](https://velog.io/@dev-baik/%EC%A0%95%EC%A0%81-%EB%A9%A4%EB%B2%84#%EC%A0%95%EC%A0%81-%EB%A9%94%EC%86%8C%EB%93%9C)다. 그래서 확장 함수를 호출해도 다른 어댑터 객체나 실행 시점 부가 비용이 들지 않는다.
 
 ### 확장 함수로 유틸리티 함수 정의
 ```kotlin
@@ -268,6 +341,7 @@ var StringBuilder.lastChar: Char
 println("Kotlin".lastChar) // n
 
 val sb = StringBuilder("Kotlin?")
+// sb.lastChar.set('!')
 sb.lastChar = '!'
 println(sb) // Kotlin!
 ```
@@ -288,14 +362,17 @@ strings.last() // fourteenth
 val numbers: Collection<Int> = setOf(1, 14, 2)
 numbers.max() // 14
 ```
-#### 자바 라이브러리 클래스의 인스턴스인 컬렉션에 대해 코틀린에서는 어떻게 새로운 기능을 추가할 수 있었을까?
-> last와 max는 모두 확장 함수였던 것이다!
-```kotlin
-// last는 List 클래스의 확장 함수다.
-fun <T> List<T>.last(): T { /* 마지막 원소를 반환함 */ }
 
-fun Collection<Int>.max(): Int { /* 컬렉션의 최댓값을 찾음 */ }
-```
+> **자바 라이브러리 클래스의 인스턴스인 컬렉션에 대해 코틀린에서는 어떻게 새로운 기능을 추가할 수 있었을까?**
+> 
+> - last와 max는 모두 확장 함수였던 것이다!
+> ```kotlin
+> // last는 List 클래스의 확장 함수다.
+> fun <T> List<T>.last(): T { /* 마지막 원소를 반환함 */ }
+> 
+> fun Collection<Int>.max(): Int { /* 컬렉션의 최댓값을 찾음 */ }
+>  ```
+  
 
 ### 가변 인자 함수: 인자의 개수가 달라질 수 있는 함수 정의
 ```kotlin
@@ -305,7 +382,7 @@ fun listOf<T>(vararg values: T): List<T> { ... }
 ```
 - `가변 길이 인자(vararg)`는 메소드를 호출할 때 원하는 개수만큼 값을 인자로 넘기면 자바 컴파일러가 배열에 그 값들을 넣어주는 기능이다.
 - 코틀린에서는 이미 배열에 들어있는 원소를 가변 길이 인자로 넘길 때 배열을 명시적으로 풀어서 배열의 각 원소가 인자로 전달되게 해야 한다.
-- 기술적으로는 `스프레드 연산자`가 그런 작업을 해준다. 하지만 실제로는 전달하려는 배열 앞에 *를 붙이기만 하면 된다.
+- 기술적으로는 스프레드 연산자가 그런 작업을 해준다. 하지만 실제로는 전달하려는 배열 앞에 *를 붙이기만 하면 된다.
 ```kotlin
 fun main(args: Array<String>) {
     val list = listOf("args: ", *args)
@@ -346,9 +423,9 @@ fun <K, V> mapOf(vararg values: Pair<K, V>): Map<K, V>
 ```
 
 ## 문자열과 정규식 다루기
-- 코틀린 문자열은 자바 문자열과 같다. 특별한 변환도 필요 없고 자바 문자열을 감싸는 별도의 래퍼(wrapper)도 생기지 않는다.
+- 코틀린 문자열은 [자바 문자열](https://velog.io/@dev-baik/String-vs-StringBuilder-vs-StringBuffer#string-in-java)과 같다. 특별한 변환도 필요 없고 자바 문자열을 감싸는 별도의 래퍼(wrapper)도 생기지 않는다.
 ### 문자열 나누기
-- 자바 split 메소드의 구분 문자열은 `정규식`이다.
+- 자바 split 메소드의 구분 문자열은 정규식이다.
   - 일반적으로 점(.)을 사용해 문자열을 분리하면 마침표(.)는 모든 문자를 나타내는 정규식으로 해석되기 때문에 빈 배열을 반환한다.
 
 
@@ -413,8 +490,7 @@ println(kotlinLogo.trimMargin("."))
 // |  //
 // |/ \
 ```
-- 3중 따옴표 문자열 안에 문자열 템플릿을 사용할 수도 있다. 그러나 3중 따옴표 문자열 안에서는 이스케이프를 사용할 수 없다.
-- 따라서 $ 를 넣어야 한다면 문자열 템플릿 안에 $ 문자를 넣어야 한다.
+- 3중 따옴표 문자열 안에 문자열 템플릿을 사용할 수도 있다. 그러나 3중 따옴표 문자열 안에서는 이스케이프를 사용할 수 없다. 따라서 $ 를 넣어야 한다면 문자열 템플릿 안에 $ 문자를 넣어야 한다.
 ```kotlin
 val price = """${'$'}99.9"""
 ```
@@ -422,11 +498,10 @@ val price = """${'$'}99.9"""
 ## 코드 다듬기: 로컬 함수와 확장
 > 반복하지 말라(DRY, Don't Repeat Yourself)
 
-- 자바 코드를 작성할 때는 DRY 원칙을 피하기는 쉽지 않다. 많은 경우 메소드 추출 리팩토링을 적용해서 긴 메소드를 부분부분 나눠서 각 부분을 재활용할 수 있다. 하지만, 그렇게 코드를 리팩토링하면 클래스 안에 작은 메소드가 많아지고 각 메소드 사이의 관계를 파악하기 힘들어서 코드를 이해하기 더 어려워질 수도 있다.
-- 리팩토링을 진행해서 추출한 메소드를 별도의 내부 클래스(inner class) 안에 넣으면 코드를 깔끔하게 조직할 수는 있지만, 그에 따른 불필요한 준비 코드가 늘어난다.
+- 자바 코드를 작성할 때는 DRY 원칙을 피하기는 쉽지 않다. 많은 경우 [메소드 추출 리팩토링](https://aeunhi99.tistory.com/205)을 적용해서 긴 메소드를 부분부분 나눠서 각 부분을 재활용할 수 있다. 하지만, 그렇게 코드를 리팩토링하면 클래스 안에 작은 메소드가 많아지고 각 메소드 사이의 관계를 파악하기 힘들어서 코드를 이해하기 더 어려워질 수도 있다.
+- 리팩토링을 진행해서 추출한 메소드를 별도의 [내부 클래스(inner class)](https://velog.io/@dev-baik/inner-class) 안에 넣으면 코드를 깔끔하게 조직할 수는 있지만, 그에 따른 불필요한 준비 코드가 늘어난다.
 
-
-- 코틀린에서는 함수에서 추출한 함수를 원 함수 내부에 중첩시킬 수도 있다. 그렇게 하면 문법적인 부가 비용을 들이지 않고도 깔끔하게 코드를 조직할 수 잇다.
+- 코틀린에서는 함수에서 추출한 함수를 원 함수 내부에 중첩시킬 수도 있다. 그렇게 하면 문법적인 부가 비용을 들이지 않고도 깔끔하게 코드를 조직할 수 있다.
 ```kotlin
 class User(val id: Int, val name: String, val address: String)
 

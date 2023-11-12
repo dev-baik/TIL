@@ -34,7 +34,7 @@ fun main(args: Array<String>) {
 3. 리스트에서 가장 나이가 많은 사람을 찾기 위해 maxBy 함수를 사용한다.
     - maxBy 함수에 전달한 람다 식은 파라미터를 하나 받는다.
         - it이라는 이름을 사용하면 (별도로 파라미터 이름을 정의하지 않아도) 람다식의 유일한 인자를 사용할 수 있다.
-        - 엘비스 연산자라고 부루는 ?:는 age가 null인 경우 0을 반환하고, 그렇지 않은 경우 age의 값을 반환한다.
+        - 엘비스 연산자라고 부르는 ?:는 age가 null인 경우 0을 반환하고, 그렇지 않은 경우 age의 값을 반환한다.
 4. 영희의 나이를 지정하지는 않았지만 엘비스 연산자 null을 0으로 변환해주기 때문에 철수가 가장 나이가 많은 사람으로 선정될 수 있다.
 
 ## 코틀린의 주요 특성
@@ -137,7 +137,7 @@ fun add(x: Int, y: Int): Int {
 }
 
 fun subtract(x: Int, y: Int): Int {
-    return operate(x, y) { a, b -> a - b }
+    return x - y
 }
 
 fun main() {
@@ -162,6 +162,21 @@ fun main() {
     val operation = operationChoice("add")
     val result = operation(10, 5)
     println("Result of chosen operation: $result")
+}
+```
+```kotlin
+fun List<Int>.filterAndSum(predicate: (Int) -> Boolean): Int {
+    return this.filter { predicate(it) }.sum()
+}
+
+fun main() {
+    val numbers = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+    val evenSum = numbers.filterAndSum { it % 2 == 0 }
+    val oddSum = numbers.filterAndSum { it % 2 != 0 }
+
+    println("Sum of even numbers: $evenSum") // 출력: Sum of even numbers: 30
+    println("Sum of odd numbers: $oddSum")   // 출력: Sum of odd numbers: 25
 }
 ```
 #### 다중 스레드를 사용해도 안전하다
