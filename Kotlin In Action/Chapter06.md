@@ -29,7 +29,7 @@ fun strLen(s: String) = s.length
 
 strLen(null) // Error: Null can not be a value of a non-null type String
 ```
-- 컴파일러는 널이 될 수 있는 값을 strLen에게 인자로 넘기지 못하게 막는다. 따라서 strLen 함수가 결고 실행 시점에 NullPointerException을 발생시키지 않으리라 장담할 수 있다.
+- 컴파일러는 널이 될 수 있는 값을 strLen에게 인자로 넘기지 못하게 막는다. 따라서 strLen 함수가 결코 실행 시점에 NullPointerException을 발생시키지 않으리라 장담할 수 있다.
 
 
 - 이 함수가 널과 문자열을 인자로 받을 수 있게 하려면 타입 이름 뒤에 물음표(?)를 명시해야 한다.
@@ -228,10 +228,10 @@ class CopyRowAction(val list: JList<String>) : AbstractAction() {
 }
 ```
 - 이 경우 !!를 사용하지 않으려면 `val value = list.selectedValue ?: return`처럼 널이 될 수 없는 타입의 값을 얻어야 한다.
-- list.selectedValue가 null이면 함수가 조기 종료되므로 함수의 나머지 본문에서는 value가 항상 널이 아니게 된다.
-  - 이 식에서 엘비스 연산자는 중복이라 할 수 있지만 나중에 isEnabled가 더 복잡해질 가능성에 대비해 미리 보호 장치를 마련해 둔다고 생각할 수도 있다.
+  - list.selectedValue가 null이면 함수가 조기 종료되므로 함수의 나머지 본문에서는 value가 항상 널이 아니게 된다.
+- 이 식에서 엘비스 연산자는 중복이라 할 수 있지만 나중에 isEnabled가 더 복잡해질 가능성에 대비해 미리 보호 장치를 마련해 둔다고 생각할 수도 있다.
 
-> !!를 널에 대해 사용해서 발생하는 예외의 스택 트레이스에는 어떤 파일의 몇 번째 줄인지에 대한 정보는 들어있지만 어떤 식에서 예외가 발생햇는지에 대한 정보는 들어있지 않다. 어떤 값이 널이었는지 확실히 하기 위해 여러 !! 단언문을 한 줄에 함께 쓰는 일을 피하라.
+> !!를 널에 대해 사용해서 발생하는 예외의 스택 트레이스(stack trace)에는 어떤 파일의 몇 번째 줄인지에 대한 정보는 들어있지만 어떤 식에서 예외가 발생햇는지에 대한 정보는 들어있지 않다. 어떤 값이 널이었는지 확실히 하기 위해 여러 !! 단언문을 한 줄에 함께 쓰는 일을 피하라.
 
 ### let 함수
 - let 함수를 안전한 호출 연산자와 함께 사용하면 원하는 식을 평가해서 결과가 널인지 검사한 다음에 그 결과를 변수에 넣는 작업을 간단한 식을 사용해 한꺼번에 처리할 수 있다.
@@ -326,6 +326,22 @@ class MyTest {
 ```
 - 나중에 초기화하는 프로퍼티는 항상 var여야 한다. 
   - WHY) val 프로퍼티는 final 필드로 컴파일되며, 생성자 안에서 반드시 초기화해야 한다. 따라서 생성자 밖에서 초기화해야 하는 나중에 초기화하는 프로퍼티는 항상 var여야 한다.
+  ```kotlin
+  class Example {
+      // 필드 선언시 초기값 설정 
+      val name: String = "DefaultName"
+  }
+  
+  // val 프로퍼티를 선언과 동시에 초기화하면 해당 초기화 구문이 생성자의 일부로 취급되어, 
+  // 컴파일러는 이를 내부적으로 생성된 생성자 코드로 변환
+  class Example {
+      val name: String
+      
+      constructor() {
+          this.name = "DefaultName"
+      }
+  }
+  ```
 
 ### 널이 될 수 있는 타입 확장
 - 널이 될 수 있는 타입에 대한 확장 함수를 정의하면 null 값을 다루는 강력한 도구로 활용할 수 있다.
@@ -362,8 +378,10 @@ fun String?.isNullOrBlank(): Boolean =
 ```
 - 널이 될 수 있는 타입에 대한 확장을 정의하면 널이 될 수 있는 값에 대해 그 확장 함수를 호출할 수 있다.
   - 그 함수의 내부에서 this는 널이 될 수 있다. 따라서 명시적으로 널 여부를 검사해야 한다.
-- 자바에서는 메서드 안의 this는 그 메소드가 호출된 수신 객체를 가리키므로 항상 널이 아니다.
-- 코틀린에서는 널이 될 수 있는 타입의 확장 함수 안에서는 this가 널이 될 수 있다는 점이 자바와 다르다.
+
+> 자바에서는 메서드 안의 this는 그 메소드가 호출된 수신 객체를 가리키므로 항상 널이 아니다.
+>   
+> 코틀린에서는 널이 될 수 있는 타입의 확장 함수 안에서는 this가 널이 될 수 있다는 점이 자바와 다르다.
 
 
 - let 함수도 널이 될 수 있는 타입의 값에 대해 호출할 수 있지만 let은 this가 널인지 검사하지 않는다.
@@ -437,7 +455,9 @@ yellAtSafe(Person(null)) // ANYONE!!!
 val i: Int = person.name
 // 결과: Error: Type mismatch: inferred type is String! but Int was expected
 
+// 자바 프로퍼티를 널이 될 수 있는 타입으로 볼 수 있다.
 val s: String? = person.name
+// 자바 프로퍼리트를 널이 될 수 없는 타입으로 볼 수 있다.
 val s1: String = person.name
 ```
 
@@ -464,3 +484,143 @@ class NullableStringPrinter : StringProcessor {
     }
 }
 ```
+
+## 코틀린의 원시 타입
+- 코틀린은 원시 타입과 래퍼 타입을 구분하지 않는다.
+
+### 원시 타입: Int, Boolean 등
+- 원시 타입(Int 등)의 변수에는 그 값이 직접 들어가지만, 참조 타입(String 등)의 변수에는 메모리상의 객체 위치가 들어간다.
+- 원시 타입의 값을 더 효율적으로 저장하고 여기저기 전달할 수 있다. 하지만 그런 값에 대해 메소드를 호출하거나 컬렉션에 원시 타입 값을 담을 수 없다.
+- 자바는 참조 타입이 필요한 경우 특별한 래퍼 타입(java.lang.Integer 등)으로 원시 타입 값을 감싸서 사용한다.
+
+
+- 코틀린은 원시 타입과 래퍼 타입을 구분하지 않으므로 항상 같은 타입을 사용한다.
+```kotlin
+val i: Int = 1
+val list: List<Int> = listOf(1, 2, 3)
+```
+- 코틀린에서는 숫자 타입 등 원시 타입의 값에 대해 메소드를 호출할 수 있다.
+```kotlin
+fun showProgress(progress: Int) {
+    val percent = progress.coerceIn(0, 100)
+    println("We're ${percent}% done!")
+}
+
+showProgress(146) // We're 100% done!
+```
+
+### 널이 될 수 있는 원시 타입: Int?, Boolean? 등
+- null 참조를 자바의 참조 타입의 변수에만 대입할 수 있기 때문에 널이 될 수 있는 코틀린 타입은 자바 원시 타입으로 표현할 수 없다.
+  - 따라서 코틀린에서 널이 될 수 있는 원시 타입을 사용하면 그 타입은 자바의 래퍼 타입으로 컴파일된다.
+```kotlin
+// 널이 될 수 있는 원시 타입
+data class Person(val name: String, val age: Int? = null) {
+    fun isOlderThan(other: Person): Boolean? {
+        if (age == null || other.age == null)
+            return null
+        return age > other.age
+    }
+}
+
+println(Person("Sam", 35).isOlderThan(Person("Amy", 42))) // false
+println(Person("Sam", 35).isOlderThan(Person("Jane"))) // null
+```
+- [제네릭 클래스](https://slow-and-steady-wins-the-race.tistory.com/104)의 경우 래퍼 타입을 사용한다. 어떤 클래스의 타입 인자로 원시 타입을 넘기면 코틀린은 그 타입에 대한 박스 타입을 사용한다.
+
+### 숫자 변환
+- 코틀린은 한타입의 숫자를 다른 타입의 숫자로 자동 변환하지 않는다. 결과 타입이 허용하는 숫자의 범위가 원래 타입의 범위보다 넓은 경우조차도 자동 변환은 불가능하다.
+```kotlin
+val i = 1
+val l: Long = i // Error: type mismatch
+
+// 직접 변환 메소드를 호출
+val i = 1
+val l: Long = i.toLong()
+```
+- 코틀린은 모든 원시 타입(단 Boolean 제외)에 대한 변환 함수를 제공한다. 양방향 변환 함수가 모두 제공한다.
+```kotlin
+val x = 1
+println(x in listOf(1L, 2L, 3L)) // false
+println(x.toLong() in listOf(1L, 2L, 3L)) // true
+```
+- 숫자 리터럴을 사용할 때는 보통 변환 함수를 호출할 필요가 없다.
+```kotlin
+fun foo(l: Long) = println(l)
+
+val b: Byte = 1 // 상수 값은 적절한 타입으로 해석된다.
+val l = b + 1L // +는 Byte와 Long을 인자로 받을 수 있다.
+foo(42) // 컴파일러는 42를 Long 값으로 해석한다.
+```
+- 코틀린 산술 연산자에서도 자바와 같이 숫자 연산 시 값 넘침(overflow)이 발생할 수 있다. 코틀린은 값 넘침을 검사하느라 추가 비용을 들이지 않는다.
+
+### Any, Any?: 최상위 타입
+- 자바에서 Objectr가 클래스 계층의 최상위 타입이듯 코틀린에는 Any 타입이 모든 널이 될 수 없는 타입의 조상 타입이다.
+- 하지만 자바에서는 참조 타입만 Object를 정점으로 하는 타입 계층에 포함되며, 원시 타입은 그런 계층에 들어있지 않다.
+  - 즉 자바에서 Object 타입의 객체가 필요할 경우 int와 같은 원시 타입을 java.lang.Integer 같은 래퍼 타입으로 감싸야 한다는 뜻이다.
+
+
+- 코틀린에서는 Any가 Int 등의 원시 타입을 포함한 모든 타입의 조상 타입이다.
+- 자바와 마찬가지로 코틀린에서도 원시 타입 값을 Any 타입의 변수에 대입하면 자동으로 값을 객체로 감싼다.
+```kotlin
+val answer: Any = 42 // Any가 참조 타입이기 때문ㅇ 42가 박싱된다. 
+```
+
+### Unit 타입: 코틀린의 void
+- 반환 타입 선언 없이 정의한 블록이 복문인 함수
+```kotlin
+fun f(): Unit { ... }
+
+fun f() { ... }
+```
+- 코틀린 함수의 반환 타입이 Unit으고 그 함수가 제네릭 함수를 오버라이드하지 않는다면 그 함수는 내부에서 자바 void 함수로 컴파일된다.
+- Unit은 모든 기능을 갖는 일반적인 타입이며, void와 달리 Unit을 타입 인자로 쓸 수 있다.
+```kotlin
+inteface Processor<T> {
+    fun progress(): T
+}
+
+class NoResultProcess : Processor<Unit> {
+    override fun process() { // Unit을 반환하지만 타입을 지정할 필요가 없다.
+        // 업무 처리 코드
+        // 여기서 return을 명시할 필요가 없다.
+    }
+}
+```
+- 인터페이스의 시그니처는 process 함수가 어떤 값을 반환하라고 요구한다. 
+  - Unit 타입도 Unit 값을 제공하기 때문에 메소드에서 Unit 값을 반환하는 데는 아무 문제가 없다.
+- NoResultProcessor에서 명시적으로 Unit을 반환할 필요는 없다. 컴파일러가 묵시적으로 return Unit을 넣어준다.
+- 함수형 프로그래밍에서 전통적으로 Unit은 '단 하나의 인스턴스만 갖는 타입'을 의미해왔고 바로 그 유일한 인스턴스의 유무가 자바 void와 코틀린 Unit을 구분하는 가장 큰 차이다.
+
+### Nothing 타입: 이 함수는 결코 정상적으로 끝나지 않는다
+- 코틀린에는 결코 성공적으로 값을 돌려주는 일이 없으므로 '반환 값'이라는 개념 자체가 의미 없는 함수가 일부 존재한다.
+```kotlin
+fun fail(message: String): Nothing {
+    throw IllegalStateException(message)
+}
+
+fail("Error occurred")
+// 결과: java.lang.IllegalStateException: Error occurred
+```
+```kotlin
+fun <T> throwError(message: String): T {
+    throw IllegalArgumentException(message)
+}
+
+fun main() {
+    try {
+        val result: String = throwError("Error message")
+        // 이 부분은 실행되지 않음. throwError에서 예외가 던져짐.
+        println(result)
+    } catch (e: IllegalArgumentException) {
+        println("Caught an exception: ${e.message}")
+    }
+}
+```
+- Nothing 타입은 아무 값도 포함하지 않는다. 따라서 Nothing은 함수의 반환 타입이나 반환 타입으로 쓰일 타입 파라미터로만 쓸 수 있다.
+- 그 외의 다른 용도로 사용하는 경우 Nothing 타입의 변수를 선언하더라도 그 변수에 아무 값도 저장할 수 없으므로 아무 으미도 없다.
+- Nothing을 반환하는 함수를 엘비스 연산자의 우항에 사용해서 전체 조건을 검사할 수 있다.
+```kotlin
+val address = company.address ?: fail("No address")
+println(address.city)
+```
+
