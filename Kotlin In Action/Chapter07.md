@@ -260,3 +260,118 @@ fun main() {
     println(p1 < p2) // false
 }
 ```
+
+## 컬렉션과 범위에 대해 쓸 수 있는 관례
+### 인덱스로 원소에 접근: get과 set
+- 인덱스 연산자를 사용해 원소를 읽는 연산은 get 연산자 메소드로 변환되고, 원소를 쓰는 연산은 set 연산자 메소드로 변환된다.
+```kotlin
+// get 관례 구현하기
+operator fun Point.get(index: Int): Int {
+    return when(index) {
+        0 -> x
+        1 -> y
+        else ->
+            throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+
+val p = Point(10, 20)
+println(p[1]) // 20
+```
+- 인덱스에 해당하는 컬렉션 원소를 쓰고 싶을 때는 set이라는 이름의 함수를 정의하면 된다.
+  - Point 클래스는 불변 클래스이므로 set이 의미가 없다. 대신 변경 가능한 점을 표현하는 다른 클래스를 만들어서 예제로 사용하자.
+```kotlin
+data class MutablePoint(var x: Int, var y: Int)
+
+operator fun MutablePoint.set(index: Int, value: Int) {
+    when(index) {
+        0 -> x = value
+        1 -> y = value
+        else ->
+            throw IndexOutOfBoundsException("Invalid coordinate $index")
+    }
+}
+
+val p = MutablePoint(10, 20)
+p[1] = 42
+println(p) // MutablePoint(x=10, y=42)
+```
+
+### in 관례
+- in은 객체가 컬렉션에 들어있는지 검사(멤버십 검사)한다. 그런 경우 in 연산자와 대응하는 함수는 contains다.
+```kotlin
+data class Rectangle(val upperLeft: Point, val lowerRight: Point)
+
+operator fun Rectangle.contains(p: Point): Boolean {
+    // 범위를 만들고 좌표가 그 범위 안에 있는지 검사한다.
+    return p.x in upperLeft.x unitl lowerRight.x &&
+            p.y in upperLeft.y until lowerRight.y
+}
+
+val rect = Rectangle(Point(10, 20), Point(50, 50))
+println(Point(20, 30) in rect) // true
+println(Point(5, 5) in rect) // false
+```
+- in의 우항에 있는 객체는 contains 메소드의 수신 객체가 되고, in의 좌항에 있는 객체는 contains 메소드에 인자로 전달된다.
+
+### rangeTo 관례
+- rangeTo 함수는 범위를 반환한다. 이 연산자를 아무 클래스에나 정의할 수 있다.
+- 하지만 어떤 클래스가 Comparable 인터페이스를 구현하면 rangeTo를 정의할 필요가 없다.
+  - rangeTo 함수는 Comparable에 대한 확장 함수다.
+```kotlin
+operator fun <T: Comparable<T>> T.rangeTo(that: T): ClosedRange<T>
+```
+- 이 함수는 범위를 반환하며, 어떤 원소가 그 범위 안에 들어있는지 in을 통해 검사할 수 있다.
+```kotlin
+// 날짜의 범위 다루기
+val now = LocalDate.now()
+
+// val vacation = now.rangeTo(now.plusDays(10))
+val vacation = now..now.plusDays(10)
+println(now.plusWeeks(1) in vacation) // true
+```
+- rangeTo 연산자는 다른 산술 연산자보다 우선순위가 낮다. 하지만 혼동을 피하기 위해 괄호로 인자를 감싸주면 더 좋다.
+```kotlin
+val n = 9
+println(0..(n + 1)) // 0..10
+```
+- 또한 0..n.forEach {}와 같은 식은 컴파일할 수 없음에 유의하라. 범위 연산자는 우선 순위가 낮아서 범위의 메소드를 호출하려면 범위를 괄호로 둘러싸야 한다.
+```kotlin
+(0..n).forEach { println(it) } // 0123456789 
+```
+
+### for 루프를 위한 iterator 관례
+- `for (x in list) { ... }`와 같은 문장은 list.iterator()를 호출해서 이터레이터를 얻은 다음, 자바와 마찬가지로 그 이터레이터에 대해 hasNext와 next 호출을 반복하는 식으로 변환된다.
+- 하지만 코틀린에서는 이 또한 관례이므로 iterator 메소드를 확장 함수로 정의할 수 있다.
+  - 이런 성질로 인해 일반 자바 문자열에 대한 for 루프가 가능하다.
+- 코틀린 표준 라이브러리는 String의 상위 클래스인 CharSequence에 대한 iterator 확장 함수를 제공한다.
+```kotlin
+// CharaIterator 라이브러리 : 문자열을 이터레이션할 수 있게 해준다.
+operator fun CharSequence.iterator(): CharaIterator
+
+for (c in "abc") {}
+```
+```kotlin
+// 날짜 범위에 대한 이터레이터 구현하기
+operator fun ClosedRange<LocalDate>.iter(): Iterator<LocalDate> =
+    // 이 객체는 LocalDate 원소에 대한 Iterator를 구현한다.
+    object : Iterator<LocalDate> {
+        var current = start
+        
+        // compareTo 관례를 사용해 날짜를 비교한다.
+        override fun hasNext() = current <= endInclusive
+        
+        // 현재 날짜를 저장한 다음에 날짜를 변경한다. 그 후 저장해둔 날짜를 반환한다.
+        override fun next() = current.apply { 
+            current = plusDays(1) // 현재 날짜를 1일 뒤로 변경한다.
+        }
+    }
+
+val nextYear = LocalDate.ofYearDay(2017, 1)
+val daysOff = nextYear.minusDays(1)..newYear
+// daysOff에 대응하는 iterator 함수가 있으면 daysOff에 대해 이터레이션한다.
+for (dayOff in daysOff) { println(dayOff) }
+// 2016-12-31
+// 2017-01-01
+```
+- ClosedRange<LocalData>에 대한 확장 함수 iterator를 정의했기 때문에 LocalDate의 범위 객체를 for 루프에 사용할 수 있다.
