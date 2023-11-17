@@ -375,3 +375,68 @@ for (dayOff in daysOff) { println(dayOff) }
 // 2017-01-01
 ```
 - ClosedRange<LocalData>에 대한 확장 함수 iterator를 정의했기 때문에 LocalDate의 범위 객체를 for 루프에 사용할 수 있다.
+
+## 구조 분해 선언과 component 함수
+- 구조 분해를 사용하면 복합적인 값을 분해해서 여러 다른 변수를 한꺼번에 초기화할 수 있다.
+```kotlin
+val p = Point(10, 20)
+// x와 y 변수를 선언한 다음에 p의 여러 컴포넌트로 초기화한다.
+val (x, y) = p
+println(x) // 10
+println(y) // 20
+```
+- 구조 분해 선언은 일반 변수 선언과 비슷해 보인다. 다만 =의 좌변에 여러 변수를 괄호로 묶었다는 점이 다르다.
+- 내부에서 구조 분해 선언은 다시 관례를 사용한다. 구조 분해 선언의 각 변수를 초기화하기 위해 componentN이라는 함수를 호출한다.
+  - N : 구조 분해 선언에 있는 변수 위치에 따라 붙는 번호
+```kotlin
+class Point(val x: Int, val y: Int) {
+    operator fun component1() = x
+    operator fun component2() = y
+}
+```
+- data 클래스의 주 생성자에 들어있는 프로퍼티에 대해서는 컴파일러가 자동으로 componentN 함수를 만들어준다.
+```kotlin
+// 값을 저장하기 위한 데이터 클래스 선언한다.
+data class NameComponents(val name: String, val extension: String)
+
+fun splitFilename(fullName: String): NameComponents {
+    // val result = fullName.split('.', limit = 2)
+    // return NameComponents(result[0], result[1])
+    
+    // 컬렉션에 대해 구조 분해 선언 사용하기
+    val (name. extension) = fullName.split('.', limit=2)
+    return NameComponents(name, extension)
+}
+
+// 구조 분해 선언을 사용해 여러 값 반환하기
+val (name, next) = splitFilename("example.kt")
+println(name) // example
+println(ext) // kt
+```
+- 표준 라이브러리의 Pair나 Triple 클래스를 사용하면 함수에서 여러 값을 더 간단하게 반환할 수 있다.
+- Pair와 Triple은 그 안에 담겨있는 원소의 의미를 말해주지 않으므로 경우에 따라 가독성이 떨어질 수 있는 반면, 직접 클래스를 작성할 필요가 없으므로 코드는 더 단순해진다.
+
+### 구조 분해 선언과 루프
+```kotlin
+// 구조 분해 선언을 사용해 맵 이터레이션하기
+fun printEntries(map: Map<String, String>) {
+    // 루프 변수에 구조 분해 선언을 사용한다.
+    for ((key, value) in map) {
+        println("$key -> $value")
+    }
+}
+
+val map = mapOf("Oracle" to "Java", "JetBrains" to "Kotlin")
+printEntries(map)
+// Oracle -> Java
+// JetBrains -> Kotlin
+```
+- 코트린 표준 라이브러리에는 맵에 대한 확장 함수로 iterator가 들어있다. 그 iterator는 맵 원소에 대한 이터레이터를 반환한다. 따라서 자바와 달리 코틀린에서는 맵을 직접 이터레이션할 수 있다.
+- 또한 Map.Entry에 대한 확장 함수로 component1과 component2를 제공한다.
+```kotlin
+for (entry in map.entries) {
+    val key = entry.component1()
+    val value = entry.component2()
+    // ...
+}
+```
