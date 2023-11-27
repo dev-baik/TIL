@@ -197,9 +197,6 @@ public static void main(String[] args) {
 ```
 
 ### static 클래스
-
-> 
-
 - 외부 클래스의 멤버 변수 선언 위치에 선언하며, 외부 클래스의 정적 멤버처럼 다뤄진다.
 - <span style='background-color: #fff5b1'/>주의할 점 : 일반적인 정적 멤버와 달리, 정적 내부 클래스와 같은 static이지만 메모리 구조나 기능이 전혀 다르다.
 ```java
@@ -263,7 +260,7 @@ public class Main {
         System.out.println(PocketBall.PocketMonster.name);
         
         // 클래스.정적내부클래스.정적메소드()
-        PokectBall.PocketMonster.getPoketMember();
+        PocketBall.PocketMonster.getPoketMember();
     }
 }
 ```
@@ -337,15 +334,19 @@ public class Main {
     public static void main(String[] args) {
         // Object 클래스를 일회성으로 익명 클래스로 선언하여 변수 o에 저장
         Object o = new Object() {
+            String t = "안녕";
+            
             @Override
             public String toString() {
-                return  "내 마음대로 toString 바꾸기";
+                System.out.println(this.t);
+                  return  "내 마음대로 toString 바꾸기";
             }
         };
     
-    // 익명 클래스의 객체의 오버라이딩한 메서드를 사용
-    String txt = o.toString();
-    System.out.println(txt); // 내 마음대로 toString 바꾸기
+        // 익명 클래스의 객체의 오버라이딩한 메서드를 사용
+        String txt = o.toString();
+        System.out.println(txt); // 내 마음대로 toString 바꾸기
+    }
 }
 ```
 
