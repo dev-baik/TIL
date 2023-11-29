@@ -127,6 +127,8 @@ fun main() {
 ```
 - hashSet : 원소를 비교할 때 비용을 줄이기 위해 먼저 객체의 해시 코드를 비교하고 해시 코드가 같은 경우에만 실제 값을 비교한다.
 - 해시 코드 규칙 : equals()가 true를 반환하는 두 객체는 반드시 같은 hashCode()를 반환해야 한다.
+  - **WHY)** 컬렉션들은 객체를 저장하거나 검색할 때 객체의 hashCode() 값을 사용하여 [버킷](https://velog.io/@syoung125/%ED%95%B4%EC%8B%9C%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%B4%EB%9E%80)을 결정한다. 따라서 equals()가 true를 반환하는 객체는 같은 버킷에 위치해야 한다.
+
 ```kotlin
 class Client(val name: String, val postalCode: Int) {
     ...
@@ -134,6 +136,8 @@ class Client(val name: String, val postalCode: Int) {
 }
 ```
 
+> ✅ **버킷** : 해시 테이블은 각각 Key 값에 해시 함수를 적용해 배열의 고유한 index를 생성하고, 해당 인덱스를 활용해 값을 저장하거나 검색하게 된다. 여기서 실제 값이 저장되는 장소를 버킷 또는 슬롯이라고 한다.
+> 
 > ✅ **객체의 해시 코드** : 객체를 식별하기 위한 정수 값으로, 객체의 내용을 기반으로 생성되며 동일한 내용의 객체는 동일한 해시 코드를 가질 수 있다.
 
 ## Copy()
