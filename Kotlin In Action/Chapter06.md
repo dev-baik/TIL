@@ -11,7 +11,7 @@
 - 코틀린은 자바 타입 시스템에서 불필요하거나 문제가 되던 부분을 제거했다.
 
 ## 널 가능성
-- NullPointerException 오류(NPE)를 피할 수 있게 돕기 위한 코틀린 타입 시스템의 특성이다.
+- <span style='background-color: #fff5b1'/>NullPointerException 오류(NPE)를 피할 수 있게 돕기 위한 코틀린 타입 시스템의 특성이다.
 - null에 대한 접근 방법은 가능한 한 이 문제를 실행 시점에서 컴파일 시점으로 옮기는 것이다.
   - 널이 될 수 있는지 여부를 타입 시스템에 추가함으로써 컴파일러가 여러 가지 오류를 컴파일 시 미리 감지해서 실행 시점에 발생할 수 있는 예외의 가능성을 줄일 수 있다.
 
@@ -51,7 +51,7 @@ val x: String? = null
 var y: String = x
 // 결과: Error: Type mismatch: inferred type is String? but String was expected
 ```
-- 널이 될 수 있는 타입의 값을 널이 될 수 없는 타입의 파리미터를 받는 함수에 전달할 수 없다.
+- 널이 될 수 있는 타입의 값을 널이 될 수 없는 타입의 파라미터를 받는 함수에 전달할 수 없다.
 ```kotlin
 strLen(x)
 // 결과: Error: Type mismatch: inferred type is String? but String was expected
@@ -233,7 +233,7 @@ class CopyRowAction(val list: JList<String>) : AbstractAction() {
 
 > !!를 널에 대해 사용해서 발생하는 예외의 스택 트레이스(stack trace)에는 어떤 파일의 몇 번째 줄인지에 대한 정보는 들어있지만 어떤 식에서 예외가 발생햇는지에 대한 정보는 들어있지 않다. 어떤 값이 널이었는지 확실히 하기 위해 여러 !! 단언문을 한 줄에 함께 쓰는 일을 피하라.
 
-- 스택 트레이스 : 프로그램이 시작된 시점부터 현재 위치까지의 메서드 호출 목록으로, 예외가 발생할 경우 JVM이 어디서 예외가 발생했는지 알려주는 역할을 한다.
+> ✅ **스택 트레이스** : 프로그램이 시작된 시점부터 현재 위치까지의 메서드 호출 목록으로, 예외가 발생할 경우 JVM이 어디서 예외가 발생했는지 알려주는 역할을 한다.
 
 ### let 함수
 - let 함수를 안전한 호출 연산자와 함께 사용하면 원하는 식을 평가해서 결과가 널인지 검사한 다음에 그 결과를 변수에 넣는 작업을 간단한 식을 사용해 한꺼번에 처리할 수 있다.
@@ -250,10 +250,7 @@ sendEmailTo(email)
 if (email != null) sendEmailTo(email)
 ```
 - let 함수는 자신의 수신 객체를 인자로 전달받은 람다에게 넘긴다.
-  - 널이 될 수 있는 값에 대해 안전한 호출 구문을 사용해 let을 호출하되 널이 될 수 없는 타입을 인자로 받는 람다를 let에 전달한다.
-```kotlin
-email?.let { email -> sendEmailTo(email) }
-```
+- 널이 될 수 있는 값에 대해 안전한 호출 구문을 사용해 let을 호출하되 널이 될 수 없는 타입을 인자로 받는 람다를 let에 전달한다.
 ```kotlin
 // let을 사용해 null이 아닌 인자로 함수 호출하기
 fun sendEmailTo(email: String) {
@@ -342,7 +339,7 @@ class myService {
 }
 
 class MyTest {
-    // 초기화하지 않고 널이 될 수 없는 프로퍼티를 선언한다/
+    // 초기화하지 않고 널이 될 수 없는 프로퍼티를 선언한다.
     private lateinit var myService: MyService
     
     @Before fun setUp() {
@@ -356,33 +353,52 @@ class MyTest {
 }
 ```
 - 나중에 초기화하는 프로퍼티는 항상 var여야 한다. 
-  - WHY) val 프로퍼티는 final 필드로 컴파일되며, 생성자 안에서 반드시 초기화해야 한다. 따라서 생성자 밖에서 초기화해야 하는 나중에 초기화하는 프로퍼티는 항상 var여야 한다.
-  ```kotlin
-  class Example {
-      // 필드 선언시 초기값 설정 
-      val name: String = "DefaultName"
-  }
-  
-  // val 프로퍼티를 선언과 동시에 초기화하면 해당 초기화 구문이 생성자의 일부로 취급되어, 
-  // 컴파일러는 이를 내부적으로 생성된 생성자 코드로 변환
-  class Example {
-      val name: String
-      
-      constructor() {
-          this.name = "DefaultName"
-      }
-  }
-  ```
+  - **WHY)** <span style='background-color: #fff5b1'/>val 프로퍼티는 final 필드로 컴파일되며, 생성자 안에서 반드시 초기화해야 한다. 따라서 생성자 밖에서 초기화해야 하는 나중에 초기화하는 프로퍼티는 항상 var여야 한다.
+```kotlin
+class Example {
+    // 필드 선언시 초기값 설정 
+    val name: String = "DefaultName"
+}
+
+// val 프로퍼티를 선언과 동시에 초기화하면 해당 초기화 구문이 생성자의 일부로 취급되어, 
+// 컴파일러는 이를 내부적으로 생성된 생성자 코드로 변환
+class Example {
+    val name: String
+    
+    constructor() {
+        this.name = "DefaultName"
+    }
+}
+```
 
 ### 널이 될 수 있는 타입 확장
 - 널이 될 수 있는 타입에 대한 확장 함수를 정의하면 null 값을 다루는 강력한 도구로 활용할 수 있다.
   - 어떤 메소드를 호출하기 전에 수신 객체 역할을 변수가 널이 될 수 없다고 보장하는 대신, 직접 변수에 대해 메소드를 호출해도 확장 함수인 메소드가 알아서 널을 처리해준다.
-- 일반 멤버 호출은 객체 인스턴스를 통해 디스패치되므로 그 인스턴스가 널인지 여부를 검사하지 않는다.
 
-> **동적 디스패치** : 객체지향 언어에서 객체의 동적 타입에 따라 적절한 메소드를 호출해주는 방식
-> 
-> **직접 디스패치** : 반대로 컴파일러가 컴파일 시점에 어떤 메소드가 호출될지 결정해서 코드를 생성하는 방식
-> 
+- 일반 멤버 호출은 객체 인스턴스를 통해 디스패치되므로 그 인스턴스가 널인지 여부를 검사하지 않는다.
+  - **WHY)** printMessage 함수를 호출할 때 널 체크(?.)를 사용하지 않고 일반적인 방식으로 호출하더라도 컴파일러에서는 디스패치를 인스턴스의 실제 타입으로 수행하기 때문에 널 체크가 필요하지 않습니다.
+- 이는 Kotlin에서 스마트 캐스트(Smart Cast)가 활용되기 때문입니다.
+
+```kotlin
+// 널이 될 수 있는 Int에 대한 확장 함수 정의
+fun Int?.safeSquare(): Int {
+    return this?.let { it * it } ?: 0
+}
+
+fun main() {
+    val nullableNumber: Int? = null
+  
+    // 널이 될 수 있는 Int에 대한 확장 함수 호출
+    val result = nullableNumber.safeSquare()
+  
+    println("Result: $result")  // Result: 0
+}
+```
+
+> ✅ **동적 디스패치** : 객체지향 언어에서 객체의 동적 타입에 따라 적절한 메소드를 호출해주는 방식
+>
+> ✅ **정적 디스패치** : 반대로 컴파일러가 컴파일 시점에 어떤 메소드가 호출될지 결정해서 코드를 생성하는 방식
+>
 > 일반적으로 동적 디스패치를 처리할 때는 객체별로 자신의 메소드에 대한 테이블을 저장하는 방법을 가장 많이 사용한다. 물론 대부분의 객체지향 언어에서 같은 클래스에 속한 객체는 같은 메소드 테이블을 공유하므로 보통 메소드 테이블은 클래스마다 하나씩만 만들고 각 객체는 자신의 클래스에 대한 참조를 통해 그 메소드 테이블을 찾아보는 경우가 많다.
 
 ```kotlin
@@ -488,7 +504,7 @@ val i: Int = person.name
 
 // 자바 프로퍼티를 널이 될 수 있는 타입으로 볼 수 있다.
 val s: String? = person.name
-// 자바 프로퍼리트를 널이 될 수 없는 타입으로 볼 수 있다.
+// 자바 프로퍼티를 널이 될 수 없는 타입으로 볼 수 있다.
 val s1: String = person.name
 ```
 
@@ -559,7 +575,7 @@ println(Person("Sam", 35).isOlderThan(Person("Jane"))) // null
 - [제네릭 클래스](https://slow-and-steady-wins-the-race.tistory.com/104)의 경우 래퍼 타입을 사용한다. 어떤 클래스의 타입 인자로 원시 타입을 넘기면 코틀린은 그 타입에 대한 박스 타입을 사용한다.
 
 ### 숫자 변환
-- 코틀린은 한타입의 숫자를 다른 타입의 숫자로 자동 변환하지 않는다. 결과 타입이 허용하는 숫자의 범위가 원래 타입의 범위보다 넓은 경우조차도 자동 변환은 불가능하다.
+- 코틀린은 한 타입의 숫자를 다른 타입의 숫자로 자동 변환하지 않는다. 결과 타입이 허용하는 숫자의 범위가 원래 타입의 범위보다 넓은 경우조차도 자동 변환은 불가능하다.
 ```kotlin
 val i = 1
 val l: Long = i // Error: type mismatch
@@ -590,10 +606,10 @@ foo(42) // 컴파일러는 42를 Long 값으로 해석한다.
   - 즉 자바에서 Object 타입의 객체가 필요할 경우 int와 같은 원시 타입을 java.lang.Integer 같은 래퍼 타입으로 감싸야 한다는 뜻이다.
 
 
-- 코틀린에서는 Any가 Int 등의 원시 타입을 포함한 모든 타입의 조상 타입이다.
+- <span style='background-color: #fff5b1'/>코틀린에서는 Any가 Int 등의 원시 타입을 포함한 모든 타입의 조상 타입이다.
 - 자바와 마찬가지로 코틀린에서도 원시 타입 값을 Any 타입의 변수에 대입하면 자동으로 값을 객체로 감싼다.
 ```kotlin
-val answer: Any = 42 // Any가 참조 타입이기 때문ㅇ 42가 박싱된다. 
+val answer: Any = 42 // Any가 참조 타입이기 때문에 42가 박싱된다. 
 ```
 
 ### Unit 타입: 코틀린의 void
@@ -604,7 +620,7 @@ fun f(): Unit { ... }
 fun f() { ... }
 ```
 - 코틀린 함수의 반환 타입이 Unit이고 그 함수가 제네릭 함수를 오버라이드하지 않는다면 그 함수는 내부에서 자바 void 함수로 컴파일된다.
-- Unit은 모든 기능을 갖는 일반적인 타입이며, void와 달리 Unit을 타입 인자로 쓸 수 있다.
+- <span style='background-color: #fff5b1'/>Unit은 모든 기능을 갖는 일반적인 타입이며, void와 달리 Unit을 타입 인자로 쓸 수 있다.
 ```kotlin
 interface Processor<T> {
     fun progress(): T
@@ -630,7 +646,7 @@ class resultProcess : Processor<String> {
 - 인터페이스의 시그니처(인터페이스에 선언된 메서드, 프로퍼티, 또는 다른 멤버들의 형태)는 process 함수가 어떤 값을 반환하라고 요구한다. 
   - Unit 타입도 Unit 값을 제공하기 때문에 메소드에서 Unit 값을 반환하는 데는 아무 문제가 없다.
 - NoResultProcessor에서 명시적으로 Unit을 반환할 필요는 없다. 컴파일러가 묵시적으로 return Unit을 넣어준다.
-  - 함수형 프로그래밍에서 전통적으로 Unit은 '단 하나의 인스턴스만 갖는 타입'을 의미해왔고 바로 그 유일한 인스턴스의 유무가 자바 void와 코틀린 Unit을 구분하는 가장 큰 차이다.
+  - <span style='background-color: #fff5b1'/>함수형 프로그래밍에서 전통적으로 Unit은 '단 하나의 인스턴스만 갖는 타입'을 의미해왔고 바로 그 유일한 인스턴스의 유무가 자바 void와 코틀린 Unit을 구분하는 가장 큰 차이다.
 
 ### Nothing 타입: 이 함수는 결코 정상적으로 끝나지 않는다
 - 코틀린에는 결코 성공적으로 값을 돌려주는 일이 없으므로 '반환 값'이라는 개념 자체가 의미 없는 함수가 일부 존재한다.
@@ -639,25 +655,18 @@ fun fail(message: String): Nothing {
     throw IllegalStateException(message)
 }
 
-fail("Error occurred")
-// 결과: java.lang.IllegalStateException: Error occurred
-```
-```kotlin
-fun <T> throwError(message: String): T {
-    throw IllegalArgumentException(message)
-}
-
 fun main() {
     try {
-        val result: String = throwError("Error message")
+        val result: String = fail("Error message")
         // 이 부분은 실행되지 않음. throwError에서 예외가 던져짐.
         println(result)
     } catch (e: IllegalArgumentException) {
         println("Caught an exception: ${e.message}")
+        // 결과: java.lang.IllegalStateException: Error message
     }
 }
 ```
-- Nothing 타입은 아무 값도 포함하지 않는다. 따라서 Nothing은 함수의 반환 타입이나 반환 타입으로 쓰일 타입 파라미터로만 쓸 수 있다.
+- <span style='background-color: #fff5b1'/>Nothing 타입은 아무 값도 포함하지 않는다. 따라서 Nothing은 함수의 반환 타입이나 반환 타입으로 쓰일 타입 파라미터로만 쓸 수 있다.
 - 그 외의 다른 용도로 사용하는 경우 Nothing 타입의 변수를 선언하더라도 그 변수에 아무 값도 저장할 수 없으므로 아무 의미도 없다.
 - Nothing을 반환하는 함수(fail 등)를 엘비스 연산자의 우항에 사용해서 전체 조건을 검사할 수 있다.
 ```kotlin
@@ -667,8 +676,8 @@ println(address.city)
 
 ## 컬렉션과 배열
 ### 널 가능성과 컬렉션
+- 널이 될 수 있는 값으로 이뤄진 컬렉션 만들기
 ```kotlin
-// 널이 될 수 있는 값으로 이뤄진 컬렉션 만들기
 fun readNumbers(reader: BufferedReader): List<Int?> {
     // 널이 될 수 있는 Int 값으로 이뤄진 리스트를 만든다.
     val result = ArrayList<Int?>()
@@ -724,10 +733,10 @@ fun addValidNumbers(numbers: List<Int?>) {
 
 ### 읽기 전용과 변경 가능한 컬렉션
 - 코틀린에서는 컬렉션 안의 데이터에 접근하는 인터페이스와 컬렉션 안의 데이터를 변경하는 인터페이스를 분리했다.
-- kotlin.collections.Collection 인터페이스를 사용하면 컬렉션 안의 원소에 대해 이터레이션하고, 컬렉션의 크기를 얻고, 어떤 값이 컬렉션 안에 들어있는지 검사하고, 컬렉션에서 데이터를 읽는 여러 다른 연산을 수행할 수 있다.
+- kotlin.collections.Collection 인터페이스를 사용하면 컬렉션 안의 원소에 대해 이터레이션하고(iterator), 컬렉션의 크기를 얻고(size), 어떤 값이 컬렉션 안에 들어있는지 검사하고(contains), 컬렉션에서 데이터를 읽는 여러 다른 연산(filter, map, find 등)을 수행할 수 있다.
   - 하지만, Collection에는 원소를 추가하거나 제거하는 메소드가 없다.
 - HOW) 컬렉션의 데이터를 수정하려면 kotlin.collections.MutableCollection 인터페이스를 사용해야한다.
-  - MutableCollection은 일반 인터페이스인 kotlin.collections.Collection을 확장하면서 원소를 추가하거나, 삭제하거나, 컬렉션 안의 원소를 모두 지우는 등의 메소드를 더 제공한다.
+  - MutableCollection은 일반 인터페이스인 kotlin.collections.Collection을 확장하면서 원소를 추가하거나(add), 삭제하거나(remove), 컬렉션 안의 원소를 모두 지우는(clear) 등의 메소드를 더 제공한다.
 
 > 코드에서 가능하면 항상 읽기 전용 인터페이스를 사용하는 것을 일반적인 규칙으로 삼아라. 코드가 컬렉션을 변경할 필요가 있을 때만 변경 가능한 버전을 사용하라.
 
@@ -751,8 +760,7 @@ val source: Collections<Int> = arrayListOf(3, 5, 7)
 val target: Collections<Int> = arrayListOf(1)
 
 copyElements(source, target)
-// 결과: Error: Type mismatch: inferred type is Collection<Int>
-    // but MutableCollection<Int> was expected
+// 결과: Error: Type mismatch: inferred type is Collection<Int> but MutableCollection<Int> was expected
 ```
 - 읽기 전용 인터페이스 타입인 변수를 사용할 때 그 인터페이스는 실제로는 어떤 컬렉션 인스턴스를 가리키는 수많은 참조 중 하나일 수 있다.
 - 이런 상황(어떤 동일한 컬렉션 객체를 가리키는 읽기 전용 컬렉션 타입의 참조와 변경 가능한 컬렉션 타입의 참조가 있는 경우)에서 이 컬렉션을 참조하는 다른 코드를 호출하거나 병렬 실행한다면 컬렉션을 사용하는 도중에 다른 컬렉션이 그 컬렉션의 내용을 변경하는 상황이 생길 수 있고, 이런 상황에서는 ConcurrentModificationException이나 다른 오류가 발생할 수 있다.
@@ -925,9 +933,8 @@ fun main() {
     // toIntArray를 사용하여 박싱하지 않은 값이 들어있는 배열로 변환
     val intArray: IntArray = boxedList.filterNotNull().toIntArray()
   
-    // 결과 출력
     for (value in intArray) {
-      println(value)
+        println(value)
     }
 }
 ```

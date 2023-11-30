@@ -21,7 +21,7 @@ val p2 = Point(30, 40)
 println(p1 + p2) // Point(x=40, y=60)
 ```
 - 연산자를 오버로딩하는 함수 앞에는 꼭 operator가 있어야 한다.
-- operator 키워드를 붙임으로써 어떤 함수가 관례를 따르는 함수임을 명확히 할 수 있다.
+- <span style='background-color: #fff5b1'/>operator 키워드를 붙임으로써 어떤 함수가 관례를 따르는 함수임을 명확히 할 수 있다.
 ```kotlin
 // 연산자를 확장 함수로 정의하기
 operator fun Point.plus(other: Point): Point {
@@ -312,7 +312,7 @@ val rect = Rectangle(Point(10, 20), Point(50, 50))
 println(Point(20, 30) in rect) // true
 println(Point(5, 5) in rect) // false
 ```
-- in의 우항에 있는 객체는 contains 메소드의 수신 객체가 되고, in의 좌항에 있는 객체는 contains 메소드에 인자로 전달된다.
+- <span style='background-color: #fff5b1'/>in의 우항에 있는 객체는 contains 메소드의 수신 객체가 되고, in의 좌항에 있는 객체는 contains 메소드에 인자로 전달된다.
 
 ### rangeTo 관례
 - rangeTo 함수는 범위를 반환한다. 이 연산자를 아무 클래스에나 정의할 수 있다.
@@ -335,13 +335,25 @@ println(now.plusWeeks(1) in vacation) // true
 val n = 9
 println(0..(n + 1)) // 0..10
 ```
-- 또한 0..n.forEach {}와 같은 식은 컴파일할 수 없음에 유의하라. 범위 연산자는 우선 순위가 낮아서 범위의 메소드를 호출하려면 범위를 괄호로 둘러싸야 한다.
+- 또한 `0..n.forEach {}`와 같은 식은 컴파일할 수 없음에 유의하라. 범위 연산자는 우선 순위가 낮아서 범위의 메소드를 호출하려면 범위를 괄호로 둘러싸야 한다.
 ```kotlin
 (0..n).forEach { println(it) } // 0123456789 
 ```
 
 ### for 루프를 위한 iterator 관례
 - `for (x in list) { ... }`와 같은 문장은 list.iterator()를 호출해서 이터레이터를 얻은 다음, 자바와 마찬가지로 그 이터레이터에 대해 hasNext와 next 호출을 반복하는 식으로 변환된다.
+```kotlin
+fun main() {
+  val list = listOf(1, 2, 3, 4, 5)
+  
+    val iterator = list.iterator()
+    while (iterator.hasNext()) {
+        val x = iterator.next()
+        println(x)
+    }
+} 
+```
+
 - 하지만 코틀린에서는 이 또한 관례이므로 iterator 메소드를 확장 함수로 정의할 수 있다.
   - 이런 성질로 인해 일반 자바 문자열에 대한 for 루프가 가능하다.
 - 코틀린 표준 라이브러리는 String의 상위 클래스인 CharSequence에 대한 iterator 확장 함수를 제공한다.
@@ -353,7 +365,7 @@ for (c in "abc") {}
 ```
 ```kotlin
 // 날짜 범위에 대한 이터레이터 구현하기
-operator fun ClosedRange<LocalDate>.iter(): Iterator<LocalDate> =
+operator fun ClosedRange<LocalDate>.iterator(): Iterator<LocalDate> =
     // 이 객체는 LocalDate 원소에 대한 Iterator를 구현한다.
     object : Iterator<LocalDate> {
         var current = start
@@ -367,8 +379,8 @@ operator fun ClosedRange<LocalDate>.iter(): Iterator<LocalDate> =
         }
     }
 
-val nextYear = LocalDate.ofYearDay(2017, 1)
-val daysOff = nextYear.minusDays(1)..newYear
+val newYear = LocalDate.ofYearDay(2017, 1)
+val daysOff = newYear.minusDays(1)..newYear
 // daysOff에 대응하는 iterator 함수가 있으면 daysOff에 대해 이터레이션한다.
 for (dayOff in daysOff) { println(dayOff) }
 // 2016-12-31
@@ -385,7 +397,7 @@ val (x, y) = p
 println(x) // 10
 println(y) // 20
 ```
-- 구조 분해 선언은 일반 변수 선언과 비슷해 보인다. 다만 =의 좌변에 여러 변수를 괄호로 묶었다는 점이 다르다.
+- 구조 분해 선언은 일반 변수 선언과 비슷해 보인다. 다만 `=`의 좌변에 여러 변수를 괄호로 묶었다는 점이 다르다.
 - 내부에서 구조 분해 선언은 다시 관례를 사용한다. 구조 분해 선언의 각 변수를 초기화하기 위해 componentN이라는 함수를 호출한다.
   - N : 구조 분해 선언에 있는 변수 위치에 따라 붙는 번호
 ```kotlin
@@ -394,7 +406,7 @@ class Point(val x: Int, val y: Int) {
     operator fun component2() = y
 }
 ```
-- data 클래스의 주 생성자에 들어있는 프로퍼티에 대해서는 컴파일러가 자동으로 componentN 함수를 만들어준다.
+- data 클래스의 주 생성자에 들어있는 프로퍼티에 대해서는 컴파일러가 자동으로 [componentN](https://velog.io/@dev-baik/Data-Class#componentn) 함수를 만들어준다.
 ```kotlin
 // 값을 저장하기 위한 데이터 클래스 선언한다.
 data class NameComponents(val name: String, val extension: String)
@@ -404,7 +416,7 @@ fun splitFilename(fullName: String): NameComponents {
     // return NameComponents(result[0], result[1])
     
     // 컬렉션에 대해 구조 분해 선언 사용하기
-    val (name. extension) = fullName.split('.', limit=2)
+    val (name, extension) = fullName.split('.', limit=2)
     return NameComponents(name, extension)
 }
 
@@ -431,7 +443,7 @@ printEntries(map)
 // Oracle -> Java
 // JetBrains -> Kotlin
 ```
-- 코트린 표준 라이브러리에는 맵에 대한 확장 함수로 iterator가 들어있다. 그 iterator는 맵 원소에 대한 이터레이터를 반환한다. 따라서 자바와 달리 코틀린에서는 맵을 직접 이터레이션할 수 있다.
+- 코틀린 표준 라이브러리에는 맵에 대한 확장 함수로 iterator가 들어있다. 그 iterator는 맵 원소에 대한 이터레이터를 반환한다. 따라서 자바와 달리 코틀린에서는 맵을 직접 이터레이션할 수 있다.
 - 또한 Map.Entry에 대한 확장 함수로 component1과 component2를 제공한다.
 ```kotlin
 for (entry in map.entries) {
@@ -513,7 +525,7 @@ class Person(val name: String) {
               _emails = loadEmails(this)
           }
           // 저장해둔 데이터가 있으면 그 데이터를 반환한다.
-          return emails!!
+          return _emails!!
       }
 }
 
@@ -537,10 +549,49 @@ class Person(val name: String) {
 - lazy 함수는 코틀린 관례에 맞는 시그니처의 getValue 메소드가 들어있는 객체를 반환한다. 따라서 lazy를 by 키워드와 함께 사용해 위임 프로퍼티를 만들 수 있다.
 - lazy 함수의 인자는 값을 초기화할 때 호출할 람다. 기본적으로 스레드 안전하다.
 - 하지만 필요에 따라 동기화에 사용할 락을 lazy 함수에 전달할 수 있고, 다중 스레드 환경에서 사용하지 않을 프로퍼티를 위해 lazy 함수가 동기화를 하지 못하게 막을 수 있다.
+```kotlin
+import kotlin.concurrent.thread
+
+class ExpensiveObject {
+    init {
+        println("ExpensiveObject initialized")
+    }
+}
+
+class Example {
+    // 동기화에 사용할 락을 lazy 함수에 전달
+    val lazyProperty: ExpensiveObject by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        println("Initializing Lazy Property")
+        ExpensiveObject()
+    }
+
+    // 다중 스레드 환경에서 사용하지 않을 프로퍼티를 위해 lazy 함수가 동기화를 하지 못하게 막기
+    // val lazyProperty: ExpensiveObject by lazy(LazyThreadSafetyMode.NONE) {
+    //    ...
+    // }
+}
+
+fun main() {
+    val example = Example()
+  
+    // 여러 스레드에서 동시에 접근하는 상황 시뮬레이션
+    repeat(5) {
+        thread {
+            println("Accessing Lazy Property: ${example.lazyProperty}")
+        }
+    }
+  
+    // 잠시 대기하여 모든 스레드가 실행을 마치도록 함
+    Thread.sleep(1000)
+}
+```
 
 ### 위임 프로퍼티 구현
 - PropertyChangeSupport 클래스 : 리스너의 목록을 관리하고 PropertyChangeEvent 이벤트가 들어오면 목록의 모든 리스너에게 이벤트를 통지한다.
-- 자바 빈 클래스의 필드에 PropertyChangeSuppor 인스턴스를 저장하고 프로퍼티 변경 시 인스턴스에게 처리를 위임하는 방식으로 이런 통지 기능을 주로 구현한다.
+- 자바 빈 클래스의 필드에 PropertyChangeSupport 인스턴스를 저장하고 프로퍼티 변경 시 인스턴스에게 처리를 위임하는 방식으로 이런 통지 기능을 주로 구현한다.
+
+> ✅ **자바 빈 클래스** : 일정한 규약을 따르는 클래스로, 기본 생성자, getter 및 setter 메서드를 포함하며, 멤버 변수는 private으로 선언되고 이에 접근하기 위한 표준 메서드를 제공한다. 이러한 클래스는 재사용 가능한 컴포넌트를 만드는데 사용된다.
+
 ```kotlin
 // PropertyChangeSupport를 사용하기 위한 도우미 클래스
 open class PropertyChangeAware {
@@ -574,6 +625,7 @@ class Person(
       set(newValue) {
           val oldValue = field
           field = newValue
+        
           changeSupport.firePropertyChange(
               "salary", oldValue, newValue)
       }
@@ -622,7 +674,7 @@ class Person(
 ```
 - 코틀린의 위임이 실제로 작동하는 방식과 비슷하다. 프로퍼티 값을 저장하고 그 값이 바뀌면 자동으로 변경 통지를 전달해주는 클래스를 만들었고, 로직의 중복을 상당 부분 제거했다.
 - 하지만 아직도 각각의 프로퍼티마다 ObservableProperty를 만들고 게터와 세터에서 ObservableProperty에 작업을 위임하는 준비 코드가 상당 부분 필요하다.
-- HOW) 코틀린의 위임 프로퍼티 기능을 활용하면 이런 준비 코드를 없앨 수 있다.
+- **HOW)** 코틀린의 위임 프로퍼티 기능을 활용하면 이런 준비 코드를 없앨 수 있다.
 ```kotlin
 // ObservableProperty를 프로퍼티 위임에 사용할 수 있게 바꾼 모습
 class ObservableProperty(
@@ -638,8 +690,33 @@ class ObservableProperty(
 }
 ```
 - 코틀린 관례에 사용하는 다른 함수와 마찬가지로 getValue와 setValue에도 operator 변경자가 붙는다.
-- getValue와 setValue는 프로퍼티가 포함된 객체(여기서는 Person 타입인 p)와 프로퍼티를 표현하는 객체를 파라미터로 받는다. 코틀린은 KProperty 타입의 객체를 사용해 프로퍼티를 표현한다. (보류)
+- getValue와 setValue는 프로퍼티가 포함된 객체(여기서는 Person 타입인 p)와 프로퍼티를 표현하는 객체를 파라미터로 받는다. 코틀린은 [KProperty](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-property/) 타입의 객체를 사용해 프로퍼티를 표현한다.
+
+<table>
+  <tr>
+    <th>getValue</th>
+    <th>setValue</th>
+  </tr>
+  <tr>
+    <td><strong>thisRef</strong> : 위임을 사용하는 클래스와 같은 타입이거나 Any 타입이어야 한다.</td>
+    <td><strong>thisRef</strong> : 위임을 사용하는 클래스와 같은 타입이거나 Any 타입이어야 한다.</td>
+  </tr>
+  <tr>
+    <td><strong>property</strong> : Property<*>거나 Any 타입이어야 한다.</td>
+    <td><strong>property</strong> : Property<*>거나 Any 타입이어야 한다.</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><strong>newValue</strong> : 위임을 사용하는 프로퍼티와 같은 타입이거나 Any 타입이어야 한다.</td>
+  </tr>
+</table>
+
 - KProperty 인자를 통해 프로퍼티 이름을 전달받으므로 주 생성자에서는 name 프로퍼티를 없앤다.
+
+> ✅ **KProperty** : 코틀린의 리플렉션 API 중 하나로, 프로퍼티를 나타내는 역할을 한다. KProperty의 인스턴스는 `::` 연산자로 얻을 수 있습니다.
+> 
+> ✅ **리플렉션(Reflection)** : 실행 중인 프로그램의 클래스, 메소드, 필드 등과 같은 구조를 동적으로 살펴보거나 수정할 수 있는 능력
+
 ```kotlin
 // 위임 프로퍼티를 통해 프로퍼티 변경 통지 받기
 class Person(
@@ -672,7 +749,7 @@ class Person(
 }
 ```
 - by의 오른쪽에 있는 식이 꼭 새 인스턴스를 만들 필요는 없다. 함수 호출, 다른 프로퍼티, 다른 식 등이 by의 우항에 올 수 있다.
-  - 다만 우항에 있는 식을 계산한 결과인 객체는 컴파일러가 호출할 수 있는 올바른 타입의 getValue와 setValue를 반드시 제공해야 한다.
+  - <span style='background-color: #fff5b1'/>다만 우항에 있는 식을 계산한 결과인 객체는 컴파일러가 호출할 수 있는 올바른 타입의 getValue와 setValue를 반드시 제공해야 한다.
   - 다른 관례와 마찬가지로 getValue와 setValue 모두 객체 안에 정의된 메소드이거나 확장 함수일 수 있다.
 
 ### 위임 프로퍼티 컴파일 규칙
@@ -683,10 +760,10 @@ class C {
 
 val c = C()
 ```
-- 컴파일러는 MyDelegate 클래스의 인스턴스를 감춰진 프로퍼티에 저장하며 그 감춰진 프로퍼티를 <delegate>라는 이름으로 부른다.
-- 또한 컴파일러는 프로퍼티를 표현하기 위해 KProperty 타입의 객체를 사용한다. 이 객체를 <property>라고 부른다.
+- 컴파일러는 MyDelegate 클래스의 인스턴스를 감춰진 프로퍼티에 저장하며 그 감춰진 프로퍼티를 `<delegate>`라는 이름으로 부른다.
+- 또한 컴파일러는 프로퍼티를 표현하기 위해 KProperty 타입의 객체를 사용한다. 이 객체를 `<property>`라고 부른다.
 ```kotlin
-class c {
+class C {
     private val <delegate> = MyDelegate()
     var prop: Type
       get() = <delegate>.getValue(this, <property>)
@@ -695,7 +772,7 @@ class c {
 ```
 
 ### 프로퍼티 값을 맵에 저장
-- 자신의 프로퍼티를 동적으로 정의할 수 있는 객체를 만들 때 위임 프로퍼티를 활용하는 경우가 자주 있다. 그런 객체를 확장 가능한 객체라고 부르기도 한다.
+- 자신의 프로퍼티를 동적으로 정의할 수 있는 객체를 만들 때 위임 프로퍼티를 활용하는 경우가 자주 있다. 그런 객체를 `확장 가능한 객체`라고 부르기도 한다.
 ```kotlin
 // 값을 맵에 저장하는 프로퍼티 정의하기
 class Person {
@@ -713,7 +790,7 @@ class Person {
 }
 
 val p = Person()
-val data = mapOf("name", to "Dmitry", "company" to "JetBrains")
+val data = mapOf("name" to "Dmitry", "company" to "JetBrains")
 for ((attrName, value) in data)
     p.setAttribute(attrName, value)
 println(p.name) // Dmitry
