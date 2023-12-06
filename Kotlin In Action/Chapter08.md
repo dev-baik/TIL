@@ -615,3 +615,116 @@ fun readFirstLineFromFile(path: String): String {
 > ✅ **닫을 수 있는 자원?** : 시스템 리소스를 사용한 후에 반드시 해제해야 하는 객체로, 주로 I/O 관련 작업에 사용되는 파일, 네트워크 연결, 데이터베이스 연결 등이 있다.
 
 - use는 람다를 호출한 다음에 자원을 닫아준다. 이때 람다가 정상 종료한 경우는 물론 람다 안에서 예외가 발생한 경우에도 자원을 확실히 닫는다. 물론 use 함수도 인라인 함수다.
+
+## 고차 함수 안에서 흐름 제어
+### 람다 안의 return문: 람다를 둘러싼 함수로부터 반환
+- 일반 루프 안에서 return 사용하기
+```kotlin
+data class Person(val name: String, val age: Int)
+
+val people = listOf(Person("Alice", 29), Person("Bob", 31))
+
+fun lookForAlice(people: List<Person>) {
+    for (person in people) {
+        if (person.name == "Alice") {
+            println("Found!")
+            return
+        }
+    }
+    // "people" 안에 엘리스가 없다면 이 줄이 출력된다.
+    println("Alice is not found")
+}
+
+lookForAlice(people) // Found!
+```
+- forEach에 전달된 람다에서 return 사용하기
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") {
+            println("Found!")
+            return
+        }
+    }
+    println("Alice is not found")
+} 
+```
+- 람다 안에서 return을 사용하면 람다로부터만 반환되는게 아니라 그 람다를 호출하는 함수가 실행을 끝내고 반환한다.
+- 이렇게 자신을 둘러싸고 있는 블록보다 더 바깥에 있는 다른 블록을 반환하게 만드는 return문을 `넌로컬(non-local) return`이라 부른다.
+- <span style='background-color: #fff5b1'/>return이 바깥쪽 함수를 반환시킬 수 있는 때는 람다를 인자로 받는 함수가 인라인 함수인 경우뿐이다.
+- forEach는 인라인 함수이므로 람다 본문과 함께 인라이닝된다. 따라서 return 식이 바깥쪽 함수(lookForAlice)를 반환시키도록 쉽게 컴파일할 수 있다.
+- 인라이닝되지 않는 함수는 람다를 변수에 저장할 수 있고, 바깥쪽 함수로부터 반환된 뒤에 저장해 둔 람다가 호출될 수도 있다.
+
+### 람다로부터 반환: 레이블을 사용한 return
+- 로컬 return은 람다의 실행을 끝내고 람다를 호출했던 코드의 실행을 계속 이어간다.
+- 로컬 return과 넌로컬 return을 구분하기 위해 레이블을 사용해야 한다. return으로 실행을 끝내고 싶은 람다 식 앞에 레이블을 붙이고, return 키워드 뒤에 그 레이블을 추가하면 된다.
+```kotlin
+// 레이블을 통해 로컬 리턴 사용하기
+fun lookForAlice(people: List<Person>) {
+    // 람다에 레이블을 붙이거나 return 뒤에 레이블을 붙이기 위해 @ 사용하기
+    people.forEach label@{
+        // return@label은 앞에서 정의한 레이블을 참조한다.
+        if (it.name == "Alice") return@label
+    }
+    println("Alice might be somewhere")
+}
+
+lookForAlice(people) // Alice might be somewhere
+```
+- 람다에 레이블을 붙여서 사용하는 대신 람다를 인자로 받는 인라인 함수의 이름을 return 뒤에 레이블로 사용해도 된다.
+```kotlin
+// 함수 이름을 return 레이블로 사용하기
+fun lookForAlice(people: List<Person>) {
+    people.forEach {
+        if (it.name == "Alice") return@forEach
+    }
+    println("Alice might be somewhere")
+} 
+```
+
+> 람다 식의 레이블을 명시하면 함수 이름을 레이블로 사용할 수 없다는점에 유의하라. 람다식에는 레이블이 2개 이상 붙을 수 없다.
+
+#### 레이블이 붙은 this 식
+- 수신 객체 지정 람다의 본문에서는 this 참조를 사용해 묵시적인 컨텍스트 객체를 가리킬 수 있다.
+- 수신 객체 지정 람다 앞에 레이블을 붙인 경우 this 뒤에 그 레이블을 붙여서 묵시적인 컨텍스트 객체를 지정할 수 있다.
+```kotlin
+println(StringBuilder().apply sb@ {
+    listOf(1, 2, 3).apply {
+        this@sb.append(this.toString())
+    }
+}) // [1, 2, 3]
+```
+
+- 하지만 넌로컬 반환문은 장황하고, 람다 안의 여러 위치에 return 식이 들어가야 하는 경우 사용하기 불편하다.
+
+### 무명 함수: 기본적으로 로컬 return
+- 무명 함수 안에서 return 사용하기
+```kotlin
+fun lookForAlice(people: List<Person>) {
+    // 람다 식 대신 무명 함수를 사용한다.
+    people.forEach(fun(person) {
+        // "return"은 가장 가까운 함수를 가리키는데 이 위치에서 가장 가까운 함수는 무명 함수다.
+        if (person.name == "Alice") return
+        println("${person.name} is not Alice")
+    })
+}
+
+lookForAlice(people) // Bob is not Alice
+```
+- 무명 함수도 일반 함수와 같은 반환 타입 지정 규칙을 따른다.
+```kotlin
+// filter에 무명 함수 넘기기
+people.filter(fun (person) : Boolean) {
+    return person.age < 30
+}
+```
+- 블록이 본문인 무명 함수는 반환 타입을 명시해야 하지만, 식을 본문으로 하는 무명 함수의 반환 타입은 생략할 수 있다.
+```kotlin
+people.filter(fun (person) = person.age < 30) 
+```
+- 무명 함수 안에서 레이블이 붙지 않은 return 식은 무명 함수 자체를 반환시킬 뿐 무명 함수를 둘러싼 다른 함수를 반환시키지 않는다.
+
+#### 정리
+- return은 fun 키워드를 사용해 정의된 가장 안쪽 함수를 반환시킨다.
+- 람다식은 fun을 사용해 정의되지 않으므로 람다 본문의 return은 람다 밖에 함수를 반환시킨다.
+- 무명 함수는 fun을 사용해 정의되므로 그 함수 자신이 바로 가장 안쪽에 있는 fun으로 정의된 함수다. 따라서 무명 함수 본문의 return은 그 무명 함수를 반환시키고, 무명 함수 밖의 다른 함수를 반환시키지 못한다.
