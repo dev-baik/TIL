@@ -73,11 +73,29 @@
 
 ### HOW) Squash & Merge가 아닌 일반 Merge를 택했을 때
 - 지저분한 커밋 내역이 남아있게되어 불편하다. ~~(내 커밋은 소중하다)~~
-#### gitHub에 Push된 commit 삭제하기
+#### Revert 후에 gitHub에 Push된 commit 삭제하기
 1. git log를 통해 삭제할 commit 찾기
 2. git reset을 통해 commit 삭제하기
     - 최근의 commit을 삭제하고 싶을 때 = git reset HEAD^
 3. github에 commit 삭제 알리기 = git push -f origin "branch name"
+
+## reset vs revert
+### reset
+- 커밋 내역들을 삭제하고, 특정 시점의 커밋으로 되돌아가는 명령어
+- soft
+  - 이전 커밋으로 HEAD를 이동시키지만, 작업 트리와 인덱스는 이전 커밋 상태를 유지한 채로 현재 커밋 상태로 남는다. 
+  - 이후에는 변경 사항을 다시 커밋할 수 있다.
+- mixed
+  - 이전 커밋으로 HEAD를 이동시키면서, 작업 트리는 이전 커밋 상태로 되돌리지만, 인덱스는 초기화된다.
+  - 이후에는 변경 사항을 다시 스테이징하고 커밋할 수 있다.
+- hard
+  - 이전 커밋으로 HEAD를 이동시키면서, 작업 트리와 인덱스를 모두 이전 커밋 상태로 되돌린다.
+  - 변경 사항을 완전히 삭제하여 복구할 수 없기 때문에 주의해야한다.
+- 세 가지 모드로 변경 사항을 관리할 수 있다.
+
+### revert
+- 특정 커밋의 변경 사항을 취소하는 명령어
+- 새로운 커밋이 생성되고, 그 커밋에서는 지정한 커밋의 변경 사항이 반대로 적용된다.
 
 ## Rebase & Merge
 
@@ -100,3 +118,4 @@
 - https://gmlwjd9405.github.io/2018/05/12/how-to-collaborate-on-GitHub-3.html
 - https://hudi.blog/git-merge-squash-rebase/
 - https://yebeen-study-note.tistory.com/15
+- https://han-joon-hyeok.github.io/posts/git-reset-revert/
